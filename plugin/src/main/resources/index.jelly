@@ -1,4 +1,4 @@
 <?jelly escape-by-default='true'?>
 <div>
-    TODO
+    This plugin allows configuring Redis as an external fingerprint storage.
 </div>
