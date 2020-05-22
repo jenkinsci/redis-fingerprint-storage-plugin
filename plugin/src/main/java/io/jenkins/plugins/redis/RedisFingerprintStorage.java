@@ -28,6 +28,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.BulkChange;
 import hudson.Extension;
 import hudson.Util;
+import hudson.model.FingerprintStorage;
 import hudson.model.Job;
 import hudson.model.Fingerprint;
 import java.io.ByteArrayInputStream;
@@ -46,7 +47,7 @@ import redis.clients.jedis.Jedis;
  */
 
 @Extension
-public class RedisFingerprintStorage{
+public class RedisFingerprintStorage extends FingerprintStorage {
 
     private String instanceId;
     private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
@@ -75,6 +76,10 @@ public class RedisFingerprintStorage{
         StringWriter writer = new StringWriter();
         fp.getXStream().toXML(fp, writer);
         jedis.set(instanceId+fp.getHashString(), writer.toString());
+    }
+
+    public @CheckForNull Fingerprint load(@NonNull byte[] md5sum) throws IOException {
+        return load(Util.toHexString(md5sum));
     }
 
     /**
