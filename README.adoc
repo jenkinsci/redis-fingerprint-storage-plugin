@@ -1,0 +1,7 @@
+= Redis Fingerprint Storage Plugin
+
+This plugin is under development.
+Please refer to https://www.jenkins.io/projects/gsoc/2020/projects/external-fingerprint-storage/[project page]
+for current status.
+
+The plugin aims to allow users to use Redis for storing fingerprints.
