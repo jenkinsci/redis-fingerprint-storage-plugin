@@ -25,21 +25,26 @@ package io.jenkins.plugins.redis;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+
 import hudson.BulkChange;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.FingerprintStorage;
 import hudson.model.Job;
 import hudson.model.Fingerprint;
-import java.io.ByteArrayInputStream;
+import hudson.util.PersistedList;
+
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
+import java.io.InputStream;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-import hudson.util.PersistedList;
 import jenkins.model.FingerprintFacet;
+
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+
 import redis.clients.jedis.Jedis;
 
 /**
@@ -49,14 +54,10 @@ import redis.clients.jedis.Jedis;
 @Extension
 public class RedisFingerprintStorage extends FingerprintStorage {
 
-    private String instanceId;
+    private final String instanceId;
     private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
 
-    RedisFingerprintStorage() throws IOException{
-        setInstanceId();
-    }
-
-    private void setInstanceId() throws IOException{
+    public RedisFingerprintStorage() throws IOException{
         try {
             instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
         } catch (IOException e) {
@@ -87,7 +88,19 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      */
     public @CheckForNull Fingerprint load(@NonNull String md5sum) throws IOException {
         Jedis jedis = new Jedis("localhost");
-        Object loaded = jedis.get(instanceId+md5sum);
+        String db = jedis.get(instanceId+md5sum);
+
+        if (db == null)
+            return null;
+
+        Object loaded = null;
+
+        try (InputStream in = new ByteArrayInputStream(db.getBytes())) {
+            loaded = Fingerprint.getXStream().fromXML(in);
+        } catch (RuntimeException | Error e) {
+            throw new IOException("Unable to read fingerprint.",e);
+        }
+
         if (!(loaded instanceof Fingerprint)) {
             throw new IOException("Unexpected Fingerprint type. Expected " + Fingerprint.class + " or subclass but got "
                     + (loaded != null ? loaded.getClass() : "null"));
