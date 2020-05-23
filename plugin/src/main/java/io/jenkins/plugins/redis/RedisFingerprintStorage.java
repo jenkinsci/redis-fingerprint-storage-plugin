@@ -92,12 +92,12 @@ public class RedisFingerprintStorage extends FingerprintStorage {
             throw new IOException("Unexpected Fingerprint type. Expected " + Fingerprint.class + " or subclass but got "
                     + (loaded != null ? loaded.getClass() : "null"));
         }
-        Fingerprint f = (Fingerprint) loaded;
+        Fingerprint fingerprint = (Fingerprint) loaded;
 //        if (f.facets==null)
 //            f.facets = new PersistedList<>(f);
 //        for (FingerprintFacet facet : f.facets)
 //            facet._setOwner(f);
-        return f;
+        return fingerprint;
     }
 
     /**
