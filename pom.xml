@@ -19,7 +19,7 @@
     </modules>
 
     <properties>
-        <jenkins.version>2.238-rc29973.a9ca3b8fd5c9</jenkins.version>
+        <jenkins.version>2.239-rc29984.8ef152b65240</jenkins.version>
         <java.level>8</java.level>
         <useBeta>true</useBeta>
     </properties>
