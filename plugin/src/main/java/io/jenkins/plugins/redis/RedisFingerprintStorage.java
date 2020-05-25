@@ -72,10 +72,12 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     public synchronized void save(Fingerprint fp) throws IOException {
         if(BulkChange.contains(fp))
             return;
+
         Jedis jedis = new Jedis("localhost");
-        System.out.println("Connection to server successfully");
+
         StringWriter writer = new StringWriter();
         fp.getXStream().toXML(fp, writer);
+
         jedis.set(instanceId+fp.getHashString(), writer.toString());
     }
 
