@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -119,7 +120,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
         Object loaded = null;
 
-        try (InputStream in = new ByteArrayInputStream(db.getBytes())) {
+        try (InputStream in = new ByteArrayInputStream(db.getBytes(StandardCharsets.UTF_8))) {
             loaded = Fingerprint.getXStream().fromXML(in);
         } catch (RuntimeException | Error e) {
             throw new IOException("Unable to read fingerprint.",e);
