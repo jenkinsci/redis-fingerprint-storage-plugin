@@ -63,9 +63,9 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
 
     @Restricted(NoExternalUse.class)
-    private static final String host = SystemProperties.getString("Redis.host", "localhost");
+    private static final String host = SystemProperties.getString("redis.host", "localhost");
     @Restricted(NoExternalUse.class)
-    private static final Integer port = SystemProperties.getInteger("Redis.port", 6379);
+    private static final Integer port = SystemProperties.getInteger("redis.port", 6379);
 
     /**
      * Saves the given fingerprint.
