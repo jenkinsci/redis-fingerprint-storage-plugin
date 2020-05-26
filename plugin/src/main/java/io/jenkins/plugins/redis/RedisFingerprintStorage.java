@@ -132,11 +132,6 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         }
         Fingerprint fingerprint = (Fingerprint) loaded;
 
-        if (fingerprint.getPersistedFacets()==null)
-            fingerprint.setPersistedFacets(new PersistedList<>(fingerprint));
-        for (FingerprintFacet facet : fingerprint.getPersistedFacets())
-            facet._setOwner(fingerprint);
-
         return fingerprint;
     }
 
