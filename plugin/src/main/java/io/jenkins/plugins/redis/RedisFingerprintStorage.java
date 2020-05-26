@@ -26,13 +26,11 @@ package io.jenkins.plugins.redis;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
-import hudson.BulkChange;
 import hudson.Extension;
-import hudson.Util;
 import hudson.model.FingerprintStorage;
 import hudson.model.Job;
 import hudson.model.Fingerprint;
-import hudson.util.PersistedList;
+import hudson.Util;
 
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
@@ -42,7 +40,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-import jenkins.model.FingerprintFacet;
 import jenkins.util.SystemProperties;
 
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
@@ -90,9 +87,6 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Saves the given fingerprint.
      */
     public synchronized void save(Fingerprint fp) throws IOException {
-        if(BulkChange.contains(fp))
-            return;
-
         Jedis jedis = getJedis();
 
         StringWriter writer = new StringWriter();
