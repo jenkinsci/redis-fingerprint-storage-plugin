@@ -42,8 +42,12 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 import jenkins.model.FingerprintFacet;
+import jenkins.util.SystemProperties;
 
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import redis.clients.jedis.Jedis;
 
@@ -57,6 +61,14 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     private final String instanceId;
     private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
 
+    @Restricted(NoExternalUse.class)
+    private static final String host = SystemProperties.getString("Redis.host", "localhost");
+    @Restricted(NoExternalUse.class)
+    private static final Integer port = SystemProperties.getInteger("Redis.port", 6379);
+
+    /**
+     * Saves the given fingerprint.
+     */
     public RedisFingerprintStorage() throws IOException{
         try {
             instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
@@ -67,13 +79,20 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     }
 
     /**
+     * Creates a connection to the database.
+     */
+    private Jedis getJedis() {
+        return new Jedis(host, port);
+    }
+
+    /**
      * Saves the given fingerprint.
      */
     public synchronized void save(Fingerprint fp) throws IOException {
         if(BulkChange.contains(fp))
             return;
 
-        Jedis jedis = new Jedis("localhost");
+        Jedis jedis = getJedis();
 
         StringWriter writer = new StringWriter();
         fp.getXStream().toXML(fp, writer);
@@ -81,6 +100,9 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         jedis.set(instanceId+fp.getHashString(), writer.toString());
     }
 
+    /**
+     * Returns the fingerprint associated with the given md5sum and the Jenkins instance ID, from the storage.
+     */
     public @CheckForNull Fingerprint load(@NonNull byte[] md5sum) throws IOException {
         return load(Util.toHexString(md5sum));
     }
@@ -89,7 +111,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Returns the fingerprint associated with the given md5sum and the Jenkins instance ID, from the storage.
      */
     public @CheckForNull Fingerprint load(@NonNull String md5sum) throws IOException {
-        Jedis jedis = new Jedis("localhost");
+        Jedis jedis = getJedis();
         String db = jedis.get(instanceId+md5sum);
 
         if (db == null)
