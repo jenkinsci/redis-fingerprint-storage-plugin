@@ -1,7 +1,13 @@
 = Redis Fingerprint Storage Plugin
 
+link:https://ci.jenkins.io/job/Plugins/job/redis-fingerprint-storage-plugin/job/master/[image:https://ci.jenkins.io/job/Plugins/job/redis-fingerprint-storage-plugin/job/master/badge/icon[Build]]
+link:https://github.com/jenkinsci/redis-fingerprint-storage-plugin/graphs/contributors[image:https://img.shields.io/github/contributors/jenkinsci/redis-fingerprint-storage-plugin.svg?color=blue[Contributors]]
+link:https://gitter.im/jenkinsci/external-fingerprint-storage[image:https://badges.gitter.im/jenkinsci/external-fingerprint-storage.svg[Gitter]]
+
 This plugin is under development.
 Please refer to https://www.jenkins.io/projects/gsoc/2020/projects/external-fingerprint-storage/[project page]
 for current status.
+
+== Introduction
 
 The plugin aims to allow users to use Redis for storing fingerprints.
