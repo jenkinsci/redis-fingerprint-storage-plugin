@@ -45,9 +45,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class RedisFingerprintStorageTest {
 
-    private RedisFingerprintStorage redisFingerprintStorage;
     private Map<String, String> savedSystemProperties = new HashMap<>();
-    private static final byte[] SOME_MD5 = Fingerprint.toByteArray(Util.getDigestOf("foo"));
 
     @Rule
     public GenericContainer redis = new GenericContainer<>("redis:6.0.4-alpine").withExposedPorts(6379);
@@ -67,8 +65,6 @@ public class RedisFingerprintStorageTest {
         System.setProperty("redis.host", address);
         System.setProperty("redis.port", String.valueOf(port));
         System.setProperty("FingerprintStorageEngine", "io.jenkins.plugins.redis.RedisFingerprintStorage");
-
-        redisFingerprintStorage = new RedisFingerprintStorage();
     }
 
     @After
@@ -89,10 +85,18 @@ public class RedisFingerprintStorageTest {
 
     @Test
     public void roundTrip() throws IOException {
-        Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", SOME_MD5);
-        Fingerprint fingerprintLoaded = Fingerprint.load(SOME_MD5);
+        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("foo"));
+        Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", md5);
+        Fingerprint fingerprintLoaded = Fingerprint.load(md5);
         assertThat(fingerprintLoaded, is(not(nullValue())));
         assertThat(fingerprintSaved.toString(), is(equalTo(fingerprintLoaded.toString())));
+    }
+
+    @Test
+    public void loadingNonExistentFingerprintShouldReturnNull() throws IOException{
+        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("bar"));
+        Fingerprint fingerprint = Fingerprint.load(md5);
+        assertThat(fingerprint, is(nullValue()));
     }
 
 }
