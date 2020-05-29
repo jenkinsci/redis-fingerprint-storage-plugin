@@ -90,11 +90,9 @@ public class RedisFingerprintStorageTest {
     @Test
     public void roundTrip() throws IOException {
         Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", SOME_MD5);
-
-//        Uncomment once incremental build is ready from core
-//        Fingerprint fingerprintLoaded = Fingerprint.load(fingerprintSaved.getHashString());
-//        assertThat(fingerprintLoaded, is(not(nullValue())));
-//        assertThat(fingerprintSaved.toString(), is(equalTo(fingerprintLoaded.toString())));
+        Fingerprint fingerprintLoaded = Fingerprint.load(SOME_MD5);
+        assertThat(fingerprintLoaded, is(not(nullValue())));
+        assertThat(fingerprintSaved.toString(), is(equalTo(fingerprintLoaded.toString())));
     }
 
 }
