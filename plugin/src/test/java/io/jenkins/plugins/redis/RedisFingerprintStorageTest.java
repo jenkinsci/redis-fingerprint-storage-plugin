@@ -25,26 +25,33 @@ package io.jenkins.plugins.redis;
 
 import hudson.Util;
 import hudson.model.Fingerprint;
-import io.jenkins.plugins.redis.RedisFingerprintStorage;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.testcontainers.containers.GenericContainer;
-import org.jvnet.hudson.test.JenkinsRule;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.testcontainers.containers.GenericContainer;
+import redis.clients.jedis.Jedis;
+
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 
 public class RedisFingerprintStorageTest {
 
+    private Jedis jedis;
     private Map<String, String> savedSystemProperties = new HashMap<>();
 
     @Rule
@@ -65,6 +72,8 @@ public class RedisFingerprintStorageTest {
         System.setProperty("redis.host", address);
         System.setProperty("redis.port", String.valueOf(port));
         System.setProperty("FingerprintStorageEngine", "io.jenkins.plugins.redis.RedisFingerprintStorage");
+
+        jedis = new Jedis(address, port);
     }
 
     @After
@@ -76,6 +85,8 @@ public class RedisFingerprintStorageTest {
                 System.clearProperty(entry.getKey());
             }
         }
+
+        jedis.close();
     }
 
     private void preserveSystemProperty(String propertyName) {
@@ -85,7 +96,7 @@ public class RedisFingerprintStorageTest {
 
     @Test
     public void roundTrip() throws IOException {
-        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("foo"));
+        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("roundTrip"));
         Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", md5);
         Fingerprint fingerprintLoaded = Fingerprint.load(md5);
         assertThat(fingerprintLoaded, is(not(nullValue())));
@@ -94,9 +105,23 @@ public class RedisFingerprintStorageTest {
 
     @Test
     public void loadingNonExistentFingerprintShouldReturnNull() throws IOException{
-        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("bar"));
+        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("loadingNonExistentFingerprintShouldReturnNull"));
         Fingerprint fingerprint = Fingerprint.load(md5);
         assertThat(fingerprint, is(nullValue()));
+    }
+
+    @Test
+    public void shouldThrowIOExceptionWhenFingerprintIsInvalid() throws IOException {
+        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("shouldThrowIOExceptionWhenFingerprintIsInvalid"));
+        String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
+        jedis.set(instanceId+Util.toHexString(md5), "garbageData");
+        try {
+            Fingerprint fingerprint = Fingerprint.load(md5);
+        } catch (IOException ex) {
+            assertThat(ex.getMessage(), containsString("Unexpected Fingerprint type"));
+            return;
+        }
+        fail("Expected IOException");
     }
 
 }

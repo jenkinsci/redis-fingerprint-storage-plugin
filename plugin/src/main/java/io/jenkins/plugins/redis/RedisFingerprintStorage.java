@@ -28,7 +28,6 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 import hudson.Extension;
 import hudson.model.FingerprintStorage;
-import hudson.model.Job;
 import hudson.model.Fingerprint;
 import hudson.Util;
 
