@@ -109,8 +109,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         Jedis jedis = getJedis();
         String db = jedis.get(instanceId+md5sum);
 
-        if (db == null)
-            return null;
+        if (db == null) return null;
 
         Object loaded = null;
 
