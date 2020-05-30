@@ -113,20 +113,17 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         if (db == null) return null;
 
         Object loaded = null;
+        Fingerprint fingerprintLoaded;
 
         try (InputStream in = new ByteArrayInputStream(db.getBytes(StandardCharsets.UTF_8))) {
             loaded = Fingerprint.getXStream().fromXML(in);
+            fingerprintLoaded = (Fingerprint) loaded;
         } catch (RuntimeException | Error e) {
-            throw new IOException("Unable to read fingerprint.",e);
-        }
-
-        if (!(loaded instanceof Fingerprint)) {
             throw new IOException("Unexpected Fingerprint type. Expected " + Fingerprint.class + " or subclass but got "
                     + (loaded != null ? loaded.getClass() : "null"));
         }
-        Fingerprint fingerprint = (Fingerprint) loaded;
 
-        return fingerprint;
+        return fingerprintLoaded;
     }
 
 }
