@@ -59,9 +59,9 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
 
     @Restricted(NoExternalUse.class)
-    private static final String host = SystemProperties.getString("redis.host", "localhost");
+    private static String host;
     @Restricted(NoExternalUse.class)
-    private static final Integer port = SystemProperties.getInteger("redis.port", 6379);
+    private static Integer port;
 
     /**
      * Saves the given fingerprint.
@@ -69,6 +69,8 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     public RedisFingerprintStorage() throws IOException{
         try {
             instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
+            host = SystemProperties.getString("redis.host", "localhost");
+            port = SystemProperties.getInteger("redis.port", 6379);
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to obtain Instance ID. "+e);
             throw e;
