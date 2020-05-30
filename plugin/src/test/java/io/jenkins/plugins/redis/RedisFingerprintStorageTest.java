@@ -23,7 +23,6 @@
  */
 package io.jenkins.plugins.redis;
 
-import hudson.EnvVars;
 import hudson.Util;
 import hudson.model.Fingerprint;
 
@@ -33,7 +32,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import hudson.model.FingerprintStorage;
-import hudson.slaves.EnvironmentVariablesNodeProperty;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.junit.After;
 import org.junit.Before;
