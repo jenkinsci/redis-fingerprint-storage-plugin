@@ -118,14 +118,14 @@ public class RedisFingerprintStorageTest {
     }
 
     @Test
-    public void shouldThrowIOExceptionWhenFingerprintIsInvalid() throws IOException {
-        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("shouldThrowIOExceptionWhenFingerprintIsInvalid"));
+    public void shouldFailWhenStoredObjectIsInvalidFingerprint() throws IOException {
+        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("shouldFailWhenStoredObjectIsInvalidFingerprint"));
         String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
-        jedis.set(instanceId+Util.toHexString(md5), "garbageData");
+        jedis.set(instanceId+Util.toHexString(md5), "Invalid Data");
         try {
             Fingerprint.load(md5);
         } catch (IOException ex) {
-            assertThat(ex.getMessage(), containsString("Unable to read fingerprint"));
+            assertThat(ex.getMessage(), containsString("Unexpected Fingerprint type"));
             return;
         }
         fail("Expected IOException");
