@@ -23,6 +23,7 @@
  */
 package io.jenkins.plugins.redis;
 
+import hudson.EnvVars;
 import hudson.Util;
 import hudson.model.Fingerprint;
 
@@ -31,7 +32,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hamcrest.Matchers;
+import hudson.slaves.EnvironmentVariablesNodeProperty;
+import jenkins.util.SystemProperties;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.junit.After;
 import org.junit.Before;
@@ -52,46 +54,34 @@ import static org.junit.Assert.fail;
 public class RedisFingerprintStorageTest {
 
     private Jedis jedis;
-    private Map<String, String> savedSystemProperties = new HashMap<>();
-
-    @Rule
-    public GenericContainer redis = new GenericContainer<>("redis:6.0.4-alpine").withExposedPorts(6379);
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
 
+    @Rule
+    public GenericContainer redis = new GenericContainer<>("redis:6.0.4-alpine").withExposedPorts(6379);
+
     @Before
     public void setUp() throws IOException {
-        preserveSystemProperty("redis.host");
-        preserveSystemProperty("redis.port");
-        preserveSystemProperty("FingerprintStorageEngine");
+        setEnvironmentVariables();
 
         String address = redis.getHost();
         Integer port = redis.getFirstMappedPort();
-
-        System.setProperty("redis.host", address);
-        System.setProperty("redis.port", String.valueOf(port));
-        System.setProperty("FingerprintStorageEngine", "io.jenkins.plugins.redis.RedisFingerprintStorage");
-
         jedis = new Jedis(address, port);
+    }
+
+    public void setEnvironmentVariables() throws IOException {
+        EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
+        EnvVars env = prop.getEnvVars();
+        env.put("redis.host", redis.getHost());
+        env.put("redis.port", String.valueOf(redis.getFirstMappedPort()));
+        env.put("FingerprintStorageEngine", "io.jenkins.plugins.redis.RedisFingerprintStorage");
+        j.jenkins.getGlobalNodeProperties().add(prop);
     }
 
     @After
     public void restoreSystemProperties() {
-        for (Map.Entry<String, String> entry : savedSystemProperties.entrySet()) {
-            if (entry.getValue() != null) {
-                System.setProperty(entry.getKey(), entry.getValue());
-            } else {
-                System.clearProperty(entry.getKey());
-            }
-        }
-
         jedis.close();
-    }
-
-    private void preserveSystemProperty(String propertyName) {
-        savedSystemProperties.put(propertyName, System.getProperty(propertyName));
-        System.clearProperty(propertyName);
     }
 
     @Test
@@ -116,7 +106,7 @@ public class RedisFingerprintStorageTest {
         String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
         jedis.set(instanceId+Util.toHexString(md5), "garbageData");
         try {
-            Fingerprint fingerprint = Fingerprint.load(md5);
+            Fingerprint.load(md5);
         } catch (IOException ex) {
             assertThat(ex.getMessage(), containsString("Unexpected Fingerprint type"));
             return;
