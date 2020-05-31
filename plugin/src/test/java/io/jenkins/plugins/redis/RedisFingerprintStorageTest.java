@@ -79,13 +79,15 @@ public class RedisFingerprintStorageTest {
 
     @After
     public void teardown() {
-        jedis.close();
-
-        for (Map.Entry<String, String> entry : savedSystemProperties.entrySet()) {
-            if (entry.getValue() != null) {
-                System.setProperty(entry.getKey(), entry.getValue());
-            } else {
-                System.clearProperty(entry.getKey());
+        try {
+            jedis.close();
+        } finally {
+            for (Map.Entry<String, String> entry : savedSystemProperties.entrySet()) {
+                if (entry.getValue() != null) {
+                    System.setProperty(entry.getKey(), entry.getValue());
+                } else {
+                    System.clearProperty(entry.getKey());
+                }
             }
         }
     }
@@ -117,18 +119,12 @@ public class RedisFingerprintStorageTest {
         assertThat(fingerprint, is(nullValue()));
     }
 
-    @Test
+    @Test(expected=IOException.class)
     public void shouldFailWhenStoredObjectIsInvalidFingerprint() throws IOException {
         byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("shouldFailWhenStoredObjectIsInvalidFingerprint"));
         String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
         jedis.set(instanceId+Util.toHexString(md5), "Invalid Data");
-        try {
-            Fingerprint.load(md5);
-        } catch (IOException ex) {
-            assertThat(ex.getMessage(), containsString("Unexpected Fingerprint type"));
-            return;
-        }
-        fail("Expected IOException");
+        Fingerprint.load(md5);
     }
 
 }
