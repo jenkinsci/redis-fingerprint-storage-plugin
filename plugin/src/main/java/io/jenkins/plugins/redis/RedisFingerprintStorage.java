@@ -92,7 +92,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     /**
      * Saves the given fingerprint.
      */
-    public synchronized void save(Fingerprint fp) throws JedisException{
+    public synchronized void save(Fingerprint fp) throws JedisException {
         Jedis jedis = null;
         StringWriter writer = new StringWriter();
         Fingerprint.getXStream().toXML(fp, writer);
