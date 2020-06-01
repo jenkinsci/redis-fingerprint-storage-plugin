@@ -84,25 +84,28 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         if ((!newHost.equals(host)) || (newPort != port)) {
             host = newHost;
             port = newPort;
-            if (jedisPool != null) {
-                jedisPool.close();
-                jedisPool = new JedisPool(host, port);
-            }
+            if (jedisPool != null) jedisPool.close();
+            jedisPool = new JedisPool(host, port);
         }
-        if (jedisPool==null) jedisPool = new JedisPool(host, port);
     }
 
     /**
      * Saves the given fingerprint.
      */
     public synchronized void save(Fingerprint fp) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            StringWriter writer = new StringWriter();
-            fp.getXStream().toXML(fp, writer);
+        Jedis jedis = null;
+        StringWriter writer = new StringWriter();
+        Fingerprint.getXStream().toXML(fp, writer);
+        try {
+            jedis = jedisPool.getResource();
             jedis.set(instanceId + fp.getHashString(), writer.toString());
         } catch (JedisException e) {
-            logger.log(Level.WARNING, "Jedis failed in saving fingerprint: " + fp.toString() + e);
+            logger.log(Level.WARNING, "Jedis failed in saving fingerprint: "+fp.toString()+e);
             throw e;
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
         }
     }
 
@@ -117,27 +120,36 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Returns the fingerprint associated with the given md5sum and the Jenkins instance ID, from the storage.
      */
     public @CheckForNull Fingerprint load(@NonNull String md5sum) throws IOException {
-        try (Jedis jedis = jedisPool.getResource()) {
-            String db = jedis.get(instanceId + md5sum);
+        String loadedData;
+        Jedis jedis = null;
 
-            if (db == null) return null;
-
-            Object loaded = null;
-            Fingerprint fingerprintLoaded;
-
-            try (InputStream in = new ByteArrayInputStream(db.getBytes(StandardCharsets.UTF_8))) {
-                loaded = Fingerprint.getXStream().fromXML(in);
-                fingerprintLoaded = (Fingerprint) loaded;
-            } catch (RuntimeException | Error e) {
-                throw new IOException("Unexpected Fingerprint type. Expected " + Fingerprint.class + " or subclass but got "
-                        + (loaded != null ? loaded.getClass() : "null"));
-            }
-
-            return fingerprintLoaded;
+        try {
+            jedis = jedisPool.getResource();
+            loadedData = jedis.get(instanceId + md5sum);
         } catch (JedisException e) {
-            logger.log(Level.WARNING, "Jedis failed in loading fingerprint: " + md5sum+e);
+            logger.log(Level.WARNING, "Jedis failed in loading fingerprint: "+md5sum+e);
             throw e;
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
         }
+
+        if (loadedData == null) return null;
+
+        Object loadedObject = null;
+        Fingerprint loadedFingerprint;
+
+        try (InputStream in = new ByteArrayInputStream(loadedData.getBytes(StandardCharsets.UTF_8))) {
+            loadedObject = Fingerprint.getXStream().fromXML(in);
+            loadedFingerprint = (Fingerprint) loadedObject;
+        } catch (RuntimeException | Error e) {
+            throw new IOException("Unexpected Fingerprint type. Expected " + Fingerprint.class + " or subclass but got "
+                    + (loadedObject != null ? loadedObject.getClass() : "null"));
+        }
+
+        return loadedFingerprint;
+
     }
 
 }
