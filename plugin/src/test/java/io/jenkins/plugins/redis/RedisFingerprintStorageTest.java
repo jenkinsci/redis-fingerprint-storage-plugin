@@ -103,7 +103,7 @@ public class RedisFingerprintStorageTest {
 
     @Test
     public void roundTrip() throws IOException {
-        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("roundTrip"));
+        byte[] md5 = Util.fromHexString(Util.getDigestOf("roundTrip"));
         Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", md5);
         Fingerprint fingerprintLoaded = Fingerprint.load(md5);
         assertThat(fingerprintLoaded, is(not(nullValue())));
@@ -112,14 +112,14 @@ public class RedisFingerprintStorageTest {
 
     @Test
     public void loadingNonExistentFingerprintShouldReturnNull() throws IOException{
-        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("loadingNonExistentFingerprintShouldReturnNull"));
+        byte[] md5 = Util.fromHexString(Util.getDigestOf("loadingNonExistentFingerprintShouldReturnNull"));
         Fingerprint fingerprint = Fingerprint.load(md5);
         assertThat(fingerprint, is(nullValue()));
     }
 
     @Test(expected=IOException.class)
     public void shouldFailWhenStoredObjectIsInvalidFingerprint() throws IOException {
-        byte[] md5 = Fingerprint.toByteArray(Util.getDigestOf("shouldFailWhenStoredObjectIsInvalidFingerprint"));
+        byte[] md5 = Util.fromHexString(Util.getDigestOf("shouldFailWhenStoredObjectIsInvalidFingerprint"));
         String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
         jedis.set(instanceId+Util.toHexString(md5), "Invalid Data");
         Fingerprint.load(md5);
