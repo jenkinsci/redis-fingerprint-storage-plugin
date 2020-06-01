@@ -92,7 +92,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     /**
      * Saves the given fingerprint.
      */
-    public synchronized void save(Fingerprint fp) {
+    public synchronized void save(Fingerprint fp) throws JedisException{
         Jedis jedis = null;
         StringWriter writer = new StringWriter();
         Fingerprint.getXStream().toXML(fp, writer);
@@ -119,7 +119,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     /**
      * Returns the fingerprint associated with the given md5sum and the Jenkins instance ID, from the storage.
      */
-    public @CheckForNull Fingerprint load(@NonNull String md5sum) throws IOException {
+    public @CheckForNull Fingerprint load(@NonNull String md5sum) throws IOException, JedisException{
         String loadedData;
         Jedis jedis = null;
 
