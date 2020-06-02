@@ -23,8 +23,10 @@
  */
 package io.jenkins.plugins.redis;
 
+import hudson.Extension;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
@@ -32,6 +34,8 @@ import org.kohsuke.stapler.StaplerRequest;
  *
  * @author Sumit Sarin
  */
+@Extension
+@Symbol("redis")
 public class RedisConfiguration extends GlobalConfiguration {
 
     private static boolean enabled;
