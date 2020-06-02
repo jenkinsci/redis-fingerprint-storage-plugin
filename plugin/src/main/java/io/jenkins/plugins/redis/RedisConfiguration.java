@@ -23,5 +23,39 @@
  */
 package io.jenkins.plugins.redis;
 
-public class RedisConfiguration {
+import jenkins.model.GlobalConfiguration;
+import net.sf.json.JSONObject;
+import org.kohsuke.stapler.StaplerRequest;
+
+/**
+ * Global configuration for Redis Fingerprint Storage.
+ *
+ * @author Sumit Sarin
+ */
+public class RedisConfiguration extends GlobalConfiguration {
+
+    private static String host = "localhost";
+    private static int port = 6379;
+
+    public static String getHost() {
+        return host;
+    }
+
+    public static int getPort() {
+        return port;
+    }
+
+    public RedisConfiguration() {
+        load();
+    }
+
+    @Override
+    public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+        json = json.getJSONObject("redis");
+        host = json.getString("address");
+        port = json.getInt("port");
+        save();
+        return true;
+    }
+
 }

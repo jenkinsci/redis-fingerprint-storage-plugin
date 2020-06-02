@@ -79,8 +79,8 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * are being changed.
      */
     private synchronized void initConnection(){
-        String newHost = SystemProperties.getString("redis.host", "localhost");
-        int newPort = SystemProperties.getInteger("redis.port", 6379);
+        String newHost = RedisConfiguration.getHost();
+        int newPort = RedisConfiguration.getPort();
         if ((!newHost.equals(host)) || (newPort != port)) {
             host = newHost;
             port = newPort;
