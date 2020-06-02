@@ -27,7 +27,7 @@ import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 import hudson.Extension;
-import hudson.model.FingerprintStorage;
+import jenkins.fingerprints.FingerprintStorage;
 import hudson.model.Fingerprint;
 import hudson.Util;
 
