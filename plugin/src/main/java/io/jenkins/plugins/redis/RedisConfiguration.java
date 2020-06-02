@@ -34,15 +34,40 @@ import org.kohsuke.stapler.StaplerRequest;
  */
 public class RedisConfiguration extends GlobalConfiguration {
 
+    private static boolean enabled;
     private static String host = "localhost";
     private static int port = 6379;
 
-    public static String getHost() {
+    static boolean getEnabled() {
+        return enabled;
+    }
+
+    void setEnabled(boolean newEnabled) {
+        enabled = newEnabled;
+        if (enabled){
+            System.setProperty("FingerprintStorageEngine", "io.jenkins.plugins.redis.RedisFingerprintStorage");
+        } else {
+            System.setProperty("FingerprintStorageEngine", "jenkins.fingerprints.FileFingerprintStorage");
+        }
+        save();
+    }
+
+    static String getHost() {
         return host;
     }
 
-    public static int getPort() {
+    void setHost(String newHost) {
+        host = newHost;
+        save();
+    }
+
+    static int getPort() {
         return port;
+    }
+
+    void setPort(int newPort) {
+        port = newPort;
+        save();
     }
 
     public RedisConfiguration() {
@@ -51,10 +76,7 @@ public class RedisConfiguration extends GlobalConfiguration {
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-        json = json.getJSONObject("redis");
-        host = json.getString("address");
-        port = json.getInt("port");
-        save();
+        req.bindJSON(this, json);
         return true;
     }
 

@@ -51,7 +51,7 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 public class RedisFingerprintStorageTest {
 
     private Jedis jedis;
-    private Map<String, String> savedSystemProperties = new HashMap<>();
+    private Map<String, String> savedConfiguration = new HashMap<>();
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
@@ -60,19 +60,19 @@ public class RedisFingerprintStorageTest {
     public GenericContainer redis = new GenericContainer<>("redis:6.0.4-alpine").withExposedPorts(6379);
 
     @Before
-    public void setup() throws IOException {
-        preserveSystemProperty("redis.host");
-        preserveSystemProperty("redis.port");
-        preserveSystemProperty("FingerprintStorageEngine");
+    public void setup() {
+        preserveConfiguration();
 
-        String address = redis.getHost();
+        String host = redis.getHost();
         Integer port = redis.getFirstMappedPort();
 
-        System.setProperty("redis.host", address);
-        System.setProperty("redis.port", String.valueOf(port));
-        System.setProperty("FingerprintStorageEngine", "io.jenkins.plugins.redis.RedisFingerprintStorage");
+        RedisConfiguration redisConfiguration = new RedisConfiguration();
 
-        jedis = new Jedis(address, port);
+        redisConfiguration.setHost(host);
+        redisConfiguration.setPort(port);
+        redisConfiguration.setEnabled(true);
+
+        jedis = new Jedis(host, port);
     }
 
     @After
@@ -80,19 +80,21 @@ public class RedisFingerprintStorageTest {
         try {
             jedis.close();
         } finally {
-            for (Map.Entry<String, String> entry : savedSystemProperties.entrySet()) {
-                if (entry.getValue() != null) {
-                    System.setProperty(entry.getKey(), entry.getValue());
-                } else {
-                    System.clearProperty(entry.getKey());
-                }
-            }
+            restoreConfiguration();
         }
     }
 
-    private void preserveSystemProperty(String propertyName) {
-        savedSystemProperties.put(propertyName, System.getProperty(propertyName));
-        System.clearProperty(propertyName);
+    private void preserveConfiguration() {
+        savedConfiguration.put("host", RedisConfiguration.getHost());
+        savedConfiguration.put("port", String.valueOf(RedisConfiguration.getPort()));
+        savedConfiguration.put("enabled", String.valueOf(RedisConfiguration.getEnabled()));
+    }
+
+    private void restoreConfiguration() {
+        RedisConfiguration redisConfiguration = new RedisConfiguration();
+        redisConfiguration.setHost(savedConfiguration.get("host"));
+        redisConfiguration.setPort(Integer.parseInt(savedConfiguration.get("port")));
+        redisConfiguration.setEnabled(Boolean.parseBoolean(savedConfiguration.get("enabled")));
     }
 
     @Test
