@@ -103,26 +103,39 @@ public class RedisFingerprintStorageTest {
 
     @Test
     public void roundTrip() throws IOException {
-        byte[] md5 = Util.fromHexString(Util.getDigestOf("roundTrip"));
-        Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", md5);
-        Fingerprint fingerprintLoaded = Fingerprint.load(md5);
+        String id = Util.getDigestOf("roundTrip");
+        Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", Util.fromHexString(id));
+        Fingerprint fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(not(nullValue())));
         assertThat(fingerprintSaved.toString(), is(equalTo(fingerprintLoaded.toString())));
     }
 
     @Test
     public void loadingNonExistentFingerprintShouldReturnNull() throws IOException{
-        byte[] md5 = Util.fromHexString(Util.getDigestOf("loadingNonExistentFingerprintShouldReturnNull"));
-        Fingerprint fingerprint = Fingerprint.load(md5);
+        String id = Util.getDigestOf("loadingNonExistentFingerprintShouldReturnNull");
+        Fingerprint fingerprint = Fingerprint.load(id);
         assertThat(fingerprint, is(nullValue()));
     }
 
     @Test(expected=IOException.class)
     public void shouldFailWhenStoredObjectIsInvalidFingerprint() throws IOException {
-        byte[] md5 = Util.fromHexString(Util.getDigestOf("shouldFailWhenStoredObjectIsInvalidFingerprint"));
+        String id = Util.getDigestOf("shouldFailWhenStoredObjectIsInvalidFingerprint");
         String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
-        jedis.set(instanceId+Util.toHexString(md5), "Invalid Data");
-        Fingerprint.load(md5);
+        jedis.set(instanceId+id, "Invalid Data");
+        Fingerprint.load(id);
+    }
+
+    @Test
+    public void shouldDeleteWhenFingerprintExists() throws IOException {
+        String id = Util.getDigestOf("shouldDeleteWhenFingerprintExists");
+        Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", Util.fromHexString(id));
+        String id = fingerprintSaved.getHashString();
+        Fingerprint.delete(id);
+        Fingerprint fingerprintLoaded = Fingerprint.load(id);
+        assertThat(fingerprintLoaded, is(nullValue()));
+        Fingerprint.delete(id);
+        fingerprintLoaded = Fingerprint.load(id);
+        assertThat(fingerprintLoaded, is(nullValue()));
     }
 
 }
