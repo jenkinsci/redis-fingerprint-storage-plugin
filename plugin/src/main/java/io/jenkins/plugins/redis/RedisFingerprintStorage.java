@@ -58,7 +58,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     private static int port;
     private final String instanceId;
     private static volatile JedisPool jedisPool;
-    private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
+    private static final Logger logger = Logger.getLogger(RedisFingerprintStorage.class.getName());
 
     /**
      * Saves the given fingerprint.
@@ -98,7 +98,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         Fingerprint.getXStream().toXML(fp, writer);
         try {
             jedis = jedisPool.getResource();
-            jedis.set(instanceId + fp.getHashString(), writer.toString());
+            jedis.set(instanceId+fp.getHashString(), writer.toString());
         } catch (JedisException e) {
             logger.log(Level.WARNING, "Jedis failed in saving fingerprint: "+fp.toString()+e);
             throw e;
@@ -110,24 +110,17 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     }
 
     /**
-     * Returns the fingerprint associated with the given md5sum and the Jenkins instance ID, from the storage.
+     * Returns the fingerprint associated with the given unique id and the Jenkins instance ID, from the storage.
      */
-    public @CheckForNull Fingerprint load(@NonNull byte[] md5sum) throws IOException {
-        return load(Util.toHexString(md5sum));
-    }
-
-    /**
-     * Returns the fingerprint associated with the given md5sum and the Jenkins instance ID, from the storage.
-     */
-    public @CheckForNull Fingerprint load(@NonNull String md5sum) throws IOException, JedisException{
+    public @CheckForNull Fingerprint load(@NonNull String id) throws IOException, JedisException{
         String loadedData;
         Jedis jedis = null;
 
         try {
             jedis = jedisPool.getResource();
-            loadedData = jedis.get(instanceId + md5sum);
+            loadedData = jedis.get(instanceId+id);
         } catch (JedisException e) {
-            logger.log(Level.WARNING, "Jedis failed in loading fingerprint: "+md5sum+e);
+            logger.log(Level.WARNING, "Jedis failed in loading fingerprint: "+id+e);
             throw e;
         } finally {
             if (jedis != null) {
@@ -150,6 +143,25 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
         return loadedFingerprint;
 
+    }
+
+    /**
+     * Deletes the fingerprint with the given id.
+     */
+    public void delete(@NonNull String id) throws JedisException {
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            jedis.del(instanceId+id);
+
+        } catch (JedisException e) {
+            logger.log(Level.WARNING, "Jedis failed in deleting fingerprint: "+id+e);
+            throw e;
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
+        }
     }
 
 }
