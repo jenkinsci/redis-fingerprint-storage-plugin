@@ -41,6 +41,7 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
     private boolean enabled;
     private String host = "localhost";
     private int port = 6379;
+    private int database = 0;
 
     public GlobalRedisConfiguration() {
         load();
@@ -54,8 +55,8 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         return enabled;
     }
 
-    void setEnabled(boolean newEnabled) {
-        enabled = newEnabled;
+    void setEnabled(boolean enabled) {
+        this.enabled = enabled;
         if (enabled){
             System.setProperty("FingerprintStorageEngine", "io.jenkins.plugins.redis.RedisFingerprintStorage");
         } else {
@@ -67,16 +68,24 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         return host;
     }
 
-    public void setHost(String newHost) {
-        host = newHost;
+    public void setHost(String host) {
+        this.host = host;
     }
 
     public int getPort() {
         return port;
     }
 
-    public void setPort(int newPort) {
-        port = newPort;
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public int getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(int database) {
+        this.database = database;
     }
 
     @Override
@@ -85,6 +94,7 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         setEnabled(json.getBoolean("enabled"));
         setHost(json.getString("host"));
         setPort(json.getInt("port"));
+        setDatabase(json.getInt("database"));
         save();
         return true;
     }
