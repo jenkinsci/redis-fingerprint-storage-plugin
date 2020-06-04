@@ -106,7 +106,7 @@ public class RedisFingerprintStorageTest {
         setConfiguration();
         String id = Util.getDigestOf("shouldFailWhenStoredObjectIsInvalidFingerprint");
         String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
-        jedis.set(instanceId+id, "Invalid Data");
+        jedis.set(instanceId + id, "Invalid Data");
         Fingerprint.load(id);
     }
 

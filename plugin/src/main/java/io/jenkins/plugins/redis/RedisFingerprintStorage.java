@@ -65,7 +65,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         try {
             instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to obtain Instance ID. "+e);
+            logger.log(Level.WARNING, "Failed to obtain Instance ID. " + e);
             throw e;
         }
     }
@@ -97,9 +97,9 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         Fingerprint.getXStream().toXML(fp, writer);
         try {
             jedis = jedisPool.getResource();
-            jedis.set(instanceId+fp.getHashString(), writer.toString());
+            jedis.set(instanceId + fp.getHashString(), writer.toString());
         } catch (JedisException e) {
-            logger.log(Level.WARNING, "Jedis failed in saving fingerprint: "+fp.toString()+e);
+            logger.log(Level.WARNING, "Jedis failed in saving fingerprint: " + fp.toString() + e);
             throw e;
         } finally {
             if (jedis != null) {
@@ -118,9 +118,9 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
         try {
             jedis = jedisPool.getResource();
-            loadedData = jedis.get(instanceId+id);
+            loadedData = jedis.get(instanceId + id);
         } catch (JedisException e) {
-            logger.log(Level.WARNING, "Jedis failed in loading fingerprint: "+id+e);
+            logger.log(Level.WARNING, "Jedis failed in loading fingerprint: " + id + e);
             throw e;
         } finally {
             if (jedis != null) {
@@ -153,10 +153,10 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.del(instanceId+id);
+            jedis.del(instanceId + id);
 
         } catch (JedisException e) {
-            logger.log(Level.WARNING, "Jedis failed in deleting fingerprint: "+id+e);
+            logger.log(Level.WARNING, "Jedis failed in deleting fingerprint: " + id + e);
             throw e;
         } finally {
             if (jedis != null) {
