@@ -28,9 +28,6 @@ import hudson.model.Fingerprint;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import jenkins.fingerprints.FingerprintStorage;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.junit.After;
@@ -51,7 +48,6 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 public class RedisFingerprintStorageTest {
 
     private Jedis jedis;
-    private Map<String, String> savedSystemProperties = new HashMap<>();
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
@@ -60,49 +56,36 @@ public class RedisFingerprintStorageTest {
     public GenericContainer redis = new GenericContainer<>("redis:6.0.4-alpine").withExposedPorts(6379);
 
     @Before
-    public void setup() throws IOException {
-        preserveSystemProperty("redis.host");
-        preserveSystemProperty("redis.port");
-        preserveSystemProperty("FingerprintStorageEngine");
-
-        String address = redis.getHost();
+    public void setup() {
+        String host = redis.getHost();
         Integer port = redis.getFirstMappedPort();
+        jedis = new Jedis(host, port);
+    }
 
-        System.setProperty("redis.host", address);
-        System.setProperty("redis.port", String.valueOf(port));
-        System.setProperty("FingerprintStorageEngine", "io.jenkins.plugins.redis.RedisFingerprintStorage");
-
-        jedis = new Jedis(address, port);
+    private void setConfiguration() {
+        GlobalRedisConfiguration redisConfiguration = GlobalRedisConfiguration.get();
+        String host = redis.getHost();
+        Integer port = redis.getFirstMappedPort();
+        redisConfiguration.setHost(host);
+        redisConfiguration.setPort(port);
+        redisConfiguration.setEnabled(true);
     }
 
     @After
     public void teardown() {
-        try {
-            jedis.close();
-        } finally {
-            for (Map.Entry<String, String> entry : savedSystemProperties.entrySet()) {
-                if (entry.getValue() != null) {
-                    System.setProperty(entry.getKey(), entry.getValue());
-                } else {
-                    System.clearProperty(entry.getKey());
-                }
-            }
-        }
-    }
-
-    private void preserveSystemProperty(String propertyName) {
-        savedSystemProperties.put(propertyName, System.getProperty(propertyName));
-        System.clearProperty(propertyName);
+        if (jedis!=null) jedis.close();
     }
 
     @Test
     public void checkFingerprintStorageIsRedis() throws IOException {
+        setConfiguration();
         Object fingerprintStorage = FingerprintStorage.get();
         assertThat(fingerprintStorage, instanceOf(RedisFingerprintStorage.class));
     }
 
     @Test
     public void roundTrip() throws IOException {
+        setConfiguration();
         String id = Util.getDigestOf("roundTrip");
         Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", Util.fromHexString(id));
         Fingerprint fingerprintLoaded = Fingerprint.load(id);
@@ -112,6 +95,7 @@ public class RedisFingerprintStorageTest {
 
     @Test
     public void loadingNonExistentFingerprintShouldReturnNull() throws IOException{
+        setConfiguration();
         String id = Util.getDigestOf("loadingNonExistentFingerprintShouldReturnNull");
         Fingerprint fingerprint = Fingerprint.load(id);
         assertThat(fingerprint, is(nullValue()));
@@ -119,6 +103,7 @@ public class RedisFingerprintStorageTest {
 
     @Test(expected=IOException.class)
     public void shouldFailWhenStoredObjectIsInvalidFingerprint() throws IOException {
+        setConfiguration();
         String id = Util.getDigestOf("shouldFailWhenStoredObjectIsInvalidFingerprint");
         String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
         jedis.set(instanceId+id, "Invalid Data");
@@ -127,6 +112,7 @@ public class RedisFingerprintStorageTest {
 
     @Test
     public void shouldDeleteFingerprint() throws IOException {
+        setConfiguration();
         String id = Util.getDigestOf("shouldDeleteFingerprint");
         Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", Util.fromHexString(id));
         Fingerprint.delete(id);
