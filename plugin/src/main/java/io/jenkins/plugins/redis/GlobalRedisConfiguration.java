@@ -60,7 +60,7 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
     private String host = "localhost";
     private int port = 6379;
     private int database = 0;
-    private String credentialsId = null;
+    private String credentialsId = "";
 
 
     public GlobalRedisConfiguration() {
