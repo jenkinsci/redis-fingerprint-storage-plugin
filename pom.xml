@@ -41,7 +41,8 @@ THE SOFTWARE.
     </modules>
 
     <properties>
-        <jenkins.version>2.239-rc30036.beba5cb64caa</jenkins.version>
+        <jenkins.version>2.240-SNAPSHOT</jenkins.version>
+        <relativePath>../jenkins/</relativePath>
         <java.level>8</java.level>
         <useBeta>true</useBeta>
     </properties>

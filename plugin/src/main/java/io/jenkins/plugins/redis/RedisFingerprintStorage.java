@@ -54,7 +54,6 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
     private static String host;
     private static int port;
-    private static int database;
     private final String instanceId;
     private static volatile JedisPool jedisPool;
     private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
@@ -80,19 +79,24 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         GlobalRedisConfiguration redisConfiguration = GlobalRedisConfiguration.get();
         String newHost = redisConfiguration.getHost();
         int newPort = redisConfiguration.getPort();
-        int newDatabase = redisConfiguration.getDatabase();
-        if ((!newHost.equals(host)) || (newPort != port) || (newDatabase != database)) {
+        if ((!newHost.equals(host)) || (newPort != port)) {
             host = newHost;
             port = newPort;
-            database = newDatabase;
             if (jedisPool != null) jedisPool.close();
             jedisPool = new JedisPool(host, port);
         }
     }
 
-    private Jedis getJedis() throws JedisException{
+    private @NonNull Jedis getJedis() throws JedisException{
+        GlobalRedisConfiguration redisConfiguration = GlobalRedisConfiguration.get();
         Jedis jedis = jedisPool.getResource();
-        jedis.select(database);
+        String username = redisConfiguration.getUsername();
+        String password = redisConfiguration.getPassword();
+        if (username.equals("")) {
+            username = "default";
+        }
+        jedis.auth(username, password);
+        jedis.select(redisConfiguration.getDatabase());
         return jedis;
     }
 
@@ -108,7 +112,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
             jedis = getJedis();
             jedis.set(instanceId + fp.getHashString(), writer.toString());
         } catch (JedisException e) {
-            logger.log(Level.WARNING, "Jedis failed in saving fingerprint: " + fp.toString() + e);
+            logger.log(Level.WARNING, "Jedis failed in saving fingerprint: " + fp.toString() + ". " + e);
             throw e;
         } finally {
             if (jedis != null) {
