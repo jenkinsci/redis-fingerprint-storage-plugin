@@ -23,11 +23,29 @@
  */
 package io.jenkins.plugins.redis;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.matchers.IdMatcher;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.model.Item;
+import hudson.security.ACL;
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.interceptor.RequirePOST;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Global configuration for Redis Fingerprint Storage.
@@ -42,9 +60,12 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
     private String host = "localhost";
     private int port = 6379;
     private int database = 0;
+    private String credentialsId = null;
+
 
     public GlobalRedisConfiguration() {
         load();
+        setEnabled(this.enabled);
     }
 
     public static GlobalRedisConfiguration get() {
@@ -88,6 +109,47 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         this.database = database;
     }
 
+    public String getCredentialsId() {
+        return credentialsId;
+    }
+
+    public void setCredentialsId(String credentialsId) {
+        this.credentialsId = credentialsId;
+    }
+
+    public @NonNull String getUsername() {
+        StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
+        if (credential == null) {
+            return "default";
+        }
+        String username = credential.getUsername();
+        if (username.equals("")) {
+            return "default";
+        }
+        return username;
+    }
+
+    public @NonNull String getPassword() {
+        StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
+        if (credential == null) {
+            return "";
+        }
+        return credential.getPassword().getPlainText();
+    }
+
+    private StandardUsernamePasswordCredentials getCredential(String id) {
+        StandardUsernamePasswordCredentials credential = null;
+        List<StandardUsernamePasswordCredentials> credentials = CredentialsProvider.lookupCredentials(
+                StandardUsernamePasswordCredentials.class, Jenkins.get(), ACL.SYSTEM, Collections.emptyList());
+        IdMatcher matcher = new IdMatcher(id);
+        for (StandardUsernamePasswordCredentials c : credentials) {
+            if (matcher.matches(c)) {
+                credential = c;
+            }
+        }
+        return credential;
+    }
+
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) {
         json = json.getJSONObject("redis");
@@ -95,8 +157,58 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         setHost(json.getString("host"));
         setPort(json.getInt("port"));
         setDatabase(json.getInt("database"));
+        setCredentialsId(json.getString("credentialsId"));
         save();
         return true;
+    }
+
+    @RequirePOST
+    public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+        StandardListBoxModel result = new StandardListBoxModel();
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return result.includeCurrentValue(credentialsId);
+            }
+        } else {
+            if (!item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                return result.includeCurrentValue(credentialsId);
+            }
+        }
+        return result
+                .includeEmptyValue()
+                .includeMatchingAs(
+                        ACL.SYSTEM,
+                        Jenkins.get(),
+                        StandardUsernamePasswordCredentials.class,
+                        Collections.emptyList(),
+                        CredentialsMatchers.always()
+                )
+                .includeCurrentValue(credentialsId);
+    }
+
+    public FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+        } else {
+            if (!item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                return FormValidation.ok();
+            }
+        }
+        if (StringUtils.isBlank(value)) {
+            return FormValidation.ok();
+        }
+        if (CredentialsProvider.listCredentials(
+                StandardUsernamePasswordCredentials.class,
+                Jenkins.get(),
+                ACL.SYSTEM,
+                Collections.emptyList(),
+                CredentialsMatchers.withId(value)
+        ).isEmpty()) {
+            return FormValidation.error("Cannot find currently selected credentials");
+        }
+        return FormValidation.ok();
     }
 
 }
