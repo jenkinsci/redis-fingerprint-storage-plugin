@@ -28,6 +28,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Item;
@@ -43,7 +44,11 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.interceptor.RequirePOST;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisException;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -119,6 +124,10 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
 
     public @NonNull String getUsername() {
         StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
+        return getUsernameFromCredential(credential);
+    }
+
+    private @NonNull String getUsernameFromCredential(@CheckForNull StandardUsernamePasswordCredentials credential) {
         if (credential == null) {
             return "default";
         }
@@ -131,6 +140,10 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
 
     public @NonNull String getPassword() {
         StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
+        return getPasswordFromCredential(credential);
+    }
+
+    private @NonNull String getPasswordFromCredential(@CheckForNull StandardUsernamePasswordCredentials credential) {
         if (credential == null) {
             return "";
         }
@@ -209,6 +222,33 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
             return FormValidation.error("Cannot find currently selected credentials");
         }
         return FormValidation.ok();
+    }
+
+    @RequirePOST
+    public FormValidation doTestRedisConnection(
+            @QueryParameter("host") final String host,
+            @QueryParameter("port") final int port,
+            @QueryParameter("database") final int database,
+            @QueryParameter("credentialsId") final String credentialsId
+    ) throws IOException, ServletException {
+        if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+            return FormValidation.error("Need admin permission to perform this action");
+        }
+        try {
+            testConnection(host, port, database, credentialsId);
+            return FormValidation.ok("Success");
+        } catch (Exception e) {
+            return FormValidation.error("Connection error : " + e.getMessage());
+        }
+    }
+
+    private void testConnection (String host, int port, int database, String credentialsId) throws JedisException {
+        Jedis jedis = new Jedis(host, port);
+        StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
+        String username = getUsernameFromCredential(credential);
+        String password = getPasswordFromCredential(credential);
+        jedis.auth(username, password);
+        jedis.select(database);
     }
 
 }

@@ -36,6 +36,10 @@ THE SOFTWARE.
         <f:entry field="credentialsId" title="${%Credentials}">
             <c:select/>
         </f:entry>
+        <f:validateButton
+                title="${%Test Redis Connection}" progress="${%Testing...}"
+                method="testRedisConnection" with="host,port,database,credentialsId"
+        />
         <f:entry title="Enabled">
             <f:checkbox field="enabled" default="${it.enabled}" />
         </f:entry>
