@@ -65,6 +65,7 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
     private String host = "localhost";
     private int port = 6379;
     private int database = 0;
+    private boolean ssl;
     private String credentialsId = "";
 
 
@@ -112,6 +113,14 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
 
     public void setDatabase(int database) {
         this.database = database;
+    }
+
+    public boolean getSsl() {
+        return this.ssl;
+    }
+
+    public void setSsl(boolean ssl) {
+        this.ssl = ssl;
     }
 
     public String getCredentialsId() {
@@ -170,6 +179,7 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         setHost(json.getString("host"));
         setPort(json.getInt("port"));
         setDatabase(json.getInt("database"));
+        setSsl(json.getBoolean("ssl"));
         setCredentialsId(json.getString("credentialsId"));
         save();
         return true;
@@ -229,21 +239,23 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
             @QueryParameter("host") final String host,
             @QueryParameter("port") final int port,
             @QueryParameter("database") final int database,
+            @QueryParameter("ssl") final boolean ssl,
             @QueryParameter("credentialsId") final String credentialsId
     ) throws IOException, ServletException {
         if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
             return FormValidation.error("Need admin permission to perform this action");
         }
         try {
-            testConnection(host, port, database, credentialsId);
+            testConnection(host, port, database, credentialsId, ssl);
             return FormValidation.ok("Success");
         } catch (Exception e) {
             return FormValidation.error("Connection error : " + e.getMessage());
         }
     }
 
-    private void testConnection (String host, int port, int database, String credentialsId) throws JedisException {
-        Jedis jedis = new Jedis(host, port);
+    private void testConnection (String host, int port, int database, String credentialsId, boolean ssl)
+            throws JedisException {
+        Jedis jedis = new Jedis(host, port, ssl);
         StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
         String username = getUsernameFromCredential(credential);
         String password = getPasswordFromCredential(credential);

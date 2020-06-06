@@ -30,6 +30,9 @@ THE SOFTWARE.
         <f:entry title="Port">
             <f:textbox field="port" default="${it.port}" />
         </f:entry>
+        <f:entry title="SSL">
+            <f:checkbox field="ssl" default="${it.enabled}" />
+        </f:entry>
         <f:entry title="Database">
             <f:textbox field="database" default="${it.database}" />
         </f:entry>
@@ -38,7 +41,7 @@ THE SOFTWARE.
         </f:entry>
         <f:validateButton
                 title="${%Test Redis Connection}" progress="${%Testing...}"
-                method="testRedisConnection" with="host,port,database,credentialsId"
+                method="testRedisConnection" with="host,port,database,credentialsId,ssl"
         />
         <f:entry title="Enabled">
             <f:checkbox field="enabled" default="${it.enabled}" />
