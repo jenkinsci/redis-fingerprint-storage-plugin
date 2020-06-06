@@ -54,6 +54,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
     private static String host;
     private static int port;
+    private static boolean ssl;
     private final String instanceId;
     private static volatile JedisPool jedisPool;
     private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
@@ -79,11 +80,13 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         GlobalRedisConfiguration redisConfiguration = GlobalRedisConfiguration.get();
         String newHost = redisConfiguration.getHost();
         int newPort = redisConfiguration.getPort();
-        if ((!newHost.equals(host)) || (newPort != port)) {
+        boolean newSsl = redisConfiguration.getSsl();
+        if ((!newHost.equals(host)) || (newPort != port) || (newSsl != ssl)) {
             host = newHost;
             port = newPort;
+            ssl = newSsl;
             if (jedisPool != null) jedisPool.close();
-            jedisPool = new JedisPool(host, port);
+            jedisPool = new JedisPool(host, port, ssl);
         }
     }
 
