@@ -28,19 +28,19 @@ THE SOFTWARE.
             <f:textbox field="host" default="${it.host}" />
         </f:entry>
         <f:entry title="Port">
-            <f:textbox field="port" default="${it.port}" />
+            <f:number field="port" default="${it.port}" />
         </f:entry>
         <f:entry title="SSL">
             <f:checkbox field="ssl" default="${it.enabled}" />
         </f:entry>
         <f:entry title="Database">
-            <f:textbox field="database" default="${it.database}" />
+            <f:number field="database" default="${it.database}" />
         </f:entry>
         <f:entry title="Connection Timeout (ms)">
-            <f:textbox field="connectionTimeout" default="${it.connectionTimeout}" />
+            <f:number field="connectionTimeout" default="${it.connectionTimeout}" />
         </f:entry>
         <f:entry title="Socket Timeout (ms)">
-            <f:textbox field="socketTimeout" default="${it.socketTimeout}" />
+            <f:number field="socketTimeout" default="${it.socketTimeout}" />
         </f:entry>
         <f:entry field="credentialsId" title="${%Credentials}">
             <c:select/>
@@ -49,6 +49,10 @@ THE SOFTWARE.
                 title="${%Test Redis Connection}" progress="${%Testing...}"
                 method="testRedisConnection" with="host,port,database,credentialsId,ssl,connectionTimeout,socketTimeout"
         />
+        <f:entry title="">
+            CAUTION: It is the responsibility of the admins to ensure the security of the Redis instance as fingerprints
+            may contain sensitive information.
+        </f:entry>
         <f:entry title="Enabled">
             <f:checkbox field="enabled" default="${it.enabled}" />
         </f:entry>
