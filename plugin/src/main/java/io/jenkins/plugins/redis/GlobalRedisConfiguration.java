@@ -66,8 +66,9 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
     private int port = 6379;
     private int database = 0;
     private boolean ssl;
+    private int connectionTimeout = 2000;
+    private int socketTimeout = 2000;
     private String credentialsId = "";
-
 
     public GlobalRedisConfiguration() {
         load();
@@ -121,6 +122,22 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
 
     public void setSsl(boolean ssl) {
         this.ssl = ssl;
+    }
+
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    public void setConnectionTimeout(int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+
+    public int getSocketTimeout() {
+        return socketTimeout;
+    }
+
+    public void setSocketTimeout(int socketTimeout) {
+        this.socketTimeout = socketTimeout;
     }
 
     public String getCredentialsId() {
@@ -181,6 +198,8 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         setDatabase(json.getInt("database"));
         setSsl(json.getBoolean("ssl"));
         setCredentialsId(json.getString("credentialsId"));
+        setConnectionTimeout(json.getInt(("connectionTimeout")));
+        setConnectionTimeout(json.getInt(("socketTimeout")));
         save();
         return true;
     }
@@ -240,22 +259,24 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
             @QueryParameter("port") final int port,
             @QueryParameter("database") final int database,
             @QueryParameter("ssl") final boolean ssl,
-            @QueryParameter("credentialsId") final String credentialsId
+            @QueryParameter("credentialsId") final String credentialsId,
+            @QueryParameter("connectionTimeout") final int connectionTimeout,
+            @QueryParameter("socketTimeout") final int socketTimeout
     ) throws IOException, ServletException {
         if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
             return FormValidation.error("Need admin permission to perform this action");
         }
         try {
-            testConnection(host, port, database, credentialsId, ssl);
+            testConnection(host, port, database, credentialsId, ssl, connectionTimeout, socketTimeout);
             return FormValidation.ok("Success");
         } catch (Exception e) {
             return FormValidation.error("Connection error : " + e.getMessage());
         }
     }
 
-    private void testConnection (String host, int port, int database, String credentialsId, boolean ssl)
-            throws JedisException {
-        Jedis jedis = new Jedis(host, port, ssl);
+    private void testConnection (String host, int port, int database, String credentialsId, boolean ssl,
+    int connectionTimeout, int socketTimeout) throws JedisException {
+        Jedis jedis = new Jedis(host, port, connectionTimeout, socketTimeout, ssl);
         StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
         String username = getUsernameFromCredential(credential);
         String password = getPasswordFromCredential(credential);
