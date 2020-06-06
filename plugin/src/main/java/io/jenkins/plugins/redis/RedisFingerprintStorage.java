@@ -55,9 +55,6 @@ import redis.clients.jedis.exceptions.JedisException;
 @Extension
 public class RedisFingerprintStorage extends FingerprintStorage {
 
-    private static String host;
-    private static int port;
-    private static boolean ssl;
     private final String instanceId;
     private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
     private static volatile JedisPool jedisPool;
