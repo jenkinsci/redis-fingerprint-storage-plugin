@@ -27,6 +27,7 @@ import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 import hudson.Extension;
+import hudson.ExtensionList;
 import jenkins.fingerprints.FingerprintStorage;
 import hudson.model.Fingerprint;
 import hudson.Util;
@@ -39,10 +40,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import jenkins.model.GlobalConfiguration;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.exceptions.JedisException;
 
 /**
@@ -56,58 +59,44 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     private static int port;
     private static boolean ssl;
     private final String instanceId;
-    private static volatile JedisPool jedisPool;
     private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
+    private static volatile JedisPool jedisPool;
 
-    /**
-     * Saves the given fingerprint.
-     */
+    public static RedisFingerprintStorage get() {
+        return ExtensionList.lookup(RedisFingerprintStorage.class).get(0);
+    }
+
     public RedisFingerprintStorage() throws IOException {
         try {
             instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
+            createJedisPoolFromConfig();
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to obtain Instance ID. " + e);
             throw e;
         }
     }
 
-    /**
-     * Initializes connection params and JedisPool.
-     * It initializes a JedisPool only when either it is being created for the first time or connection parameters
-     * are being changed.
-     */
-    private synchronized void initConnection() {
-        GlobalRedisConfiguration redisConfiguration = GlobalRedisConfiguration.get();
-        String newHost = redisConfiguration.getHost();
-        int newPort = redisConfiguration.getPort();
-        boolean newSsl = redisConfiguration.getSsl();
-        if ((!newHost.equals(host)) || (newPort != port) || (newSsl != ssl)) {
-            host = newHost;
-            port = newPort;
-            ssl = newSsl;
-            if (jedisPool != null) jedisPool.close();
-            jedisPool = new JedisPool(host, port, ssl);
-        }
+    private void createJedisPoolFromConfig() {
+        GlobalRedisConfiguration config = GlobalRedisConfiguration.get();
+        createJedisPool(config.getHost(), config.getPort(), config.getConnectionTimeout(), config.getSocketTimeout(),
+                config.getUsername(), config.getPassword(), config.getDatabase(), config.getSsl());
+    }
+
+    void createJedisPool(
+            String host, int port, int connectionTimeout, int socketTimeout, String username, String password,
+            int database, boolean ssl) {
+        jedisPool = new JedisPool(new JedisPoolConfig(), host, port, connectionTimeout, socketTimeout, username,
+                password, database, "Jenkins", ssl);
     }
 
     private @NonNull Jedis getJedis() throws JedisException{
-        GlobalRedisConfiguration redisConfiguration = GlobalRedisConfiguration.get();
-        Jedis jedis = jedisPool.getResource();
-        String username = redisConfiguration.getUsername();
-        String password = redisConfiguration.getPassword();
-        if (username.equals("")) {
-            username = "default";
-        }
-        jedis.auth(username, password);
-        jedis.select(redisConfiguration.getDatabase());
-        return jedis;
+        return jedisPool.getResource();
     }
 
     /**
      * Saves the given fingerprint.
      */
     public synchronized void save(Fingerprint fp) throws JedisException {
-        initConnection();
         Jedis jedis = null;
         StringWriter writer = new StringWriter();
         Fingerprint.getXStream().toXML(fp, writer);
@@ -128,7 +117,6 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Returns the fingerprint associated with the given unique id and the Jenkins instance ID, from the storage.
      */
     public @CheckForNull Fingerprint load(@NonNull String id) throws IOException, JedisException {
-        initConnection();
         String loadedData;
         Jedis jedis = null;
 
@@ -165,7 +153,6 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Deletes the fingerprint with the given id.
      */
     public void delete(@NonNull String id) throws JedisException {
-        initConnection();
         Jedis jedis = null;
         try {
             jedis = getJedis();

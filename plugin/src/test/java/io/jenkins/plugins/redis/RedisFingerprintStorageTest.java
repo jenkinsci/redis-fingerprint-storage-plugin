@@ -66,9 +66,10 @@ public class RedisFingerprintStorageTest {
         GlobalRedisConfiguration redisConfiguration = GlobalRedisConfiguration.get();
         String host = redis.getHost();
         Integer port = redis.getFirstMappedPort();
-        redisConfiguration.setHost(host);
-        redisConfiguration.setPort(port);
         redisConfiguration.setEnabled(true);
+        RedisFingerprintStorage redisFingerprintStorage = RedisFingerprintStorage.get();
+        redisFingerprintStorage.createJedisPool(host, port, 2000, 2000,
+                "default", "", 0, false);
     }
 
     @After

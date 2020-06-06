@@ -36,12 +36,18 @@ THE SOFTWARE.
         <f:entry title="Database">
             <f:textbox field="database" default="${it.database}" />
         </f:entry>
+        <f:entry title="Connection Timeout (ms)">
+            <f:textbox field="connectionTimeout" default="${it.connectionTimeout}" />
+        </f:entry>
+        <f:entry title="Socket Timeout (ms)">
+            <f:textbox field="socketTimeout" default="${it.socketTimeout}" />
+        </f:entry>
         <f:entry field="credentialsId" title="${%Credentials}">
             <c:select/>
         </f:entry>
         <f:validateButton
                 title="${%Test Redis Connection}" progress="${%Testing...}"
-                method="testRedisConnection" with="host,port,database,credentialsId,ssl"
+                method="testRedisConnection" with="host,port,database,credentialsId,ssl,connectionTimeout,socketTimeout"
         />
         <f:entry title="Enabled">
             <f:checkbox field="enabled" default="${it.enabled}" />
