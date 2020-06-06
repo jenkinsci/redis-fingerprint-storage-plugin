@@ -199,8 +199,9 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         setSsl(json.getBoolean("ssl"));
         setCredentialsId(json.getString("credentialsId"));
         setConnectionTimeout(json.getInt(("connectionTimeout")));
-        setConnectionTimeout(json.getInt(("socketTimeout")));
+        setSocketTimeout(json.getInt(("socketTimeout")));
         save();
+        RedisFingerprintStorage.get().createJedisPoolFromConfig();
         return true;
     }
 

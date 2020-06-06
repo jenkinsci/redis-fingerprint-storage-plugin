@@ -76,7 +76,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         }
     }
 
-    private void createJedisPoolFromConfig() {
+    void createJedisPoolFromConfig() {
         GlobalRedisConfiguration config = GlobalRedisConfiguration.get();
         createJedisPool(config.getHost(), config.getPort(), config.getConnectionTimeout(), config.getSocketTimeout(),
                 config.getUsername(), config.getPassword(), config.getDatabase(), config.getSsl());
