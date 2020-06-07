@@ -56,7 +56,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
     private final String instanceId;
     private static final Logger LOGGER = Logger.getLogger(Fingerprint.class.getName());
-    private static volatile JedisPool jedisPool;
+    private volatile JedisPool jedisPool;
 
     public static RedisFingerprintStorage get() {
         return ExtensionList.lookup(RedisFingerprintStorage.class).get(0);
