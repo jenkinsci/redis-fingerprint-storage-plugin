@@ -40,7 +40,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-import jenkins.model.GlobalConfiguration;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
 import redis.clients.jedis.Jedis;
@@ -56,7 +55,7 @@ import redis.clients.jedis.exceptions.JedisException;
 public class RedisFingerprintStorage extends FingerprintStorage {
 
     private final String instanceId;
-    private static final Logger logger = Logger.getLogger(Fingerprint.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(Fingerprint.class.getName());
     private static volatile JedisPool jedisPool;
 
     public static RedisFingerprintStorage get() {
@@ -68,7 +67,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
             instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
             createJedisPoolFromConfig();
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to obtain Instance ID. " + e);
+            LOGGER.log(Level.WARNING, "Failed to obtain Instance ID", e);
             throw e;
         }
     }
@@ -101,7 +100,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
             jedis = getJedis();
             jedis.set(instanceId + fp.getHashString(), writer.toString());
         } catch (JedisException e) {
-            logger.log(Level.WARNING, "Jedis failed in saving fingerprint: " + fp.toString() + ". " + e);
+            LOGGER.log(Level.WARNING, "Jedis failed in saving fingerprint: " + fp.toString(), e);
             throw e;
         } finally {
             if (jedis != null) {
@@ -121,7 +120,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
             jedis = getJedis();
             loadedData = jedis.get(instanceId + id);
         } catch (JedisException e) {
-            logger.log(Level.WARNING, "Jedis failed in loading fingerprint: " + id + e);
+            LOGGER.log(Level.WARNING, "Jedis failed in loading fingerprint: " + id, e);
             throw e;
         } finally {
             if (jedis != null) {
@@ -137,7 +136,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         try (InputStream in = new ByteArrayInputStream(loadedData.getBytes(StandardCharsets.UTF_8))) {
             loadedObject = Fingerprint.getXStream().fromXML(in);
             loadedFingerprint = (Fingerprint) loadedObject;
-        } catch (RuntimeException | Error e) {
+        } catch (RuntimeException e) {
             throw new IOException("Unexpected Fingerprint type. Expected " + Fingerprint.class + " or subclass but got "
                     + (loadedObject != null ? loadedObject.getClass() : "null"));
         }
@@ -156,7 +155,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
             jedis.del(instanceId + id);
 
         } catch (JedisException e) {
-            logger.log(Level.WARNING, "Jedis failed in deleting fingerprint: " + id + e);
+            LOGGER.log(Level.WARNING, "Jedis failed in deleting fingerprint: " + id, e);
             throw e;
         } finally {
             if (jedis != null) {
