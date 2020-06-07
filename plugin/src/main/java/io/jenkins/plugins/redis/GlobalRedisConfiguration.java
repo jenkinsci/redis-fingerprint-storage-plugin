@@ -283,6 +283,7 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         String password = getPasswordFromCredential(credential);
         jedis.auth(username, password);
         jedis.select(database);
+        jedis.close();
     }
 
 }
