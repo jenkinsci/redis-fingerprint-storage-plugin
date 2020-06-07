@@ -93,19 +93,13 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Saves the given fingerprint.
      */
     public synchronized void save(Fingerprint fp) throws JedisException {
-        Jedis jedis = null;
         StringWriter writer = new StringWriter();
         Fingerprint.getXStream().toXML(fp, writer);
-        try {
-            jedis = getJedis();
+        try (Jedis jedis = getJedis()) {
             jedis.set(instanceId + fp.getHashString(), writer.toString());
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in saving fingerprint: " + fp.toString(), e);
             throw e;
-        } finally {
-            if (jedis != null) {
-                jedis.close();
-            }
         }
     }
 
@@ -114,18 +108,12 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      */
     public @CheckForNull Fingerprint load(@NonNull String id) throws IOException, JedisException {
         String loadedData;
-        Jedis jedis = null;
 
-        try {
-            jedis = getJedis();
+        try (Jedis jedis = getJedis()) {
             loadedData = jedis.get(instanceId + id);
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in loading fingerprint: " + id, e);
             throw e;
-        } finally {
-            if (jedis != null) {
-                jedis.close();
-            }
         }
 
         if (loadedData == null) return null;
@@ -149,18 +137,11 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Deletes the fingerprint with the given id.
      */
     public void delete(@NonNull String id) throws JedisException {
-        Jedis jedis = null;
-        try {
-            jedis = getJedis();
+        try (Jedis jedis = getJedis()) {
             jedis.del(instanceId + id);
-
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in deleting fingerprint: " + id, e);
             throw e;
-        } finally {
-            if (jedis != null) {
-                jedis.close();
-            }
         }
     }
 
