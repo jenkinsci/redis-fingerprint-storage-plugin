@@ -49,6 +49,8 @@ import redis.clients.jedis.exceptions.JedisException;
 
 /**
  * Pluggable external fingerprint storage for fingerprints in Redis.
+ *
+ * @author Sumit Sarin
  */
 
 @Extension

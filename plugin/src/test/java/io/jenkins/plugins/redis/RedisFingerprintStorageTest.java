@@ -115,7 +115,7 @@ public class RedisFingerprintStorageTest {
     public void shouldDeleteFingerprint() throws IOException {
         setConfiguration();
         String id = Util.getDigestOf("shouldDeleteFingerprint");
-        Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", Util.fromHexString(id));
+        new Fingerprint(null, "foo.jar", Util.fromHexString(id));
         Fingerprint.delete(id);
         Fingerprint fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(nullValue()));
