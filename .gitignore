@@ -19,3 +19,6 @@ plugins.txt
 
 # Ignore DS_Store (Mac)
 .DS_Store
+
+# Ignore Redis Dumps
+*.rdb
