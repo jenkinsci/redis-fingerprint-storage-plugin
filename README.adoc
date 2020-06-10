@@ -10,4 +10,43 @@ for current status.
 
 == Introduction
 
-The plugin aims to allow users to use Redis for storing fingerprints.
+The plugin allows users to use Redis for storing fingerprints.
+
+== Running the plugin locally
+
+Clone the repository
+
+```
+git clone https://github.com/jenkinsci/redis-fingerprint-storage-plugin
+cd redis-fingerprint-storage-plugin
+```
+
+To obtain the `redis-fingerprint-storage.hpi` and `redis-fingerprint-storage.jar` files, run:
+```
+mvn clean install
+```
+
+They will be available inside `./plugin/target`
+
+To run the plugin on a local instance, run:
+
+```
+cd plugin
+mvn hpi:run
+```
+
+== Configuring the plugin
+
+Go to link:http://localhost:8080/jenkins/configure[Jenkins Configuration Page] (`/jenkins/configure`)
+
+image::https://drive.google.com/uc?export=view&id=11m-8dH82ACCUD8772voODfwFwDWVVpdN[]
+
+Supply the information for the server running Redis.
+
+You can use the 'Test Redis Connection' button to verify that the details are correct.
+
+All fingerprints will now be saved in the Redis instance, and not locally :)
+
+== References
+
+link:https://github.com/jenkinsci/jep/pull/289[JEP]
