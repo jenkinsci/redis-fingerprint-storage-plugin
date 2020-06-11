@@ -41,7 +41,7 @@ mvn hpi:run
 
 Go to link:http://localhost:8080/jenkins/configure[Jenkins Configuration Page] (`/jenkins/configure`)
 
-image::https://drive.google.com/uc?export=view&id=11m-8dH82ACCUD8772voODfwFwDWVVpdN[]
+image::images/config_page.png[]
 
 Supply the information for the server running Redis.
 
