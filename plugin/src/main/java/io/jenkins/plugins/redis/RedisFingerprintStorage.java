@@ -96,7 +96,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         try (Jedis jedis = getJedis()) {
             Transaction transaction = jedis.multi();
             transaction.set(instanceId + fp.getHashString(), writer.toString());
-            transaction.sadd("INSTANCE:" + instanceId, fp.getHashString());
+            transaction.sadd("INSTANCE|" + instanceId, fp.getHashString());
             transaction.exec();
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in saving fingerprint: " + fp.toString(), e);
@@ -141,7 +141,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         try (Jedis jedis = getJedis()) {
             Transaction transaction = jedis.multi();
             transaction.del(instanceId + id);
-            transaction.srem("INSTANCE:" + instanceId, id);
+            transaction.srem("INSTANCE|" + instanceId, id);
             transaction.exec();
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in deleting fingerprint: " + id, e);
@@ -154,7 +154,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      */
     public boolean isReady() {
         try (Jedis jedis = getJedis()) {
-            return jedis.smembers("INSTANCE:" + instanceId).size() != 0;
+            return jedis.smembers("INSTANCE|" + instanceId).size() != 0;
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
             throw e;
