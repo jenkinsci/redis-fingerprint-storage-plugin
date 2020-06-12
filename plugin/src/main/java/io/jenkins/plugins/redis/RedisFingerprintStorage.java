@@ -65,13 +65,8 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     }
 
     public RedisFingerprintStorage() throws IOException {
-        try {
-            instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
-            createJedisPoolFromConfig();
-        } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Failed to obtain Instance ID", e);
-            throw e;
-        }
+        instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
+        createJedisPoolFromConfig();
     }
 
     void createJedisPoolFromConfig() {
