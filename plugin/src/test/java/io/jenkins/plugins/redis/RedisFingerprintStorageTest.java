@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.testcontainers.containers.GenericContainer;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisException;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.core.Is.is;
@@ -71,6 +72,16 @@ public class RedisFingerprintStorageTest {
         RedisFingerprintStorage redisFingerprintStorage = RedisFingerprintStorage.get();
         redisFingerprintStorage.createJedisPool(host, port, 2000, 2000,
                 "default", "", 0, false);
+    }
+
+    /**
+     * Sets incorrect Jedis Configuration for testing failures.
+     */
+    private void setIncorrectConfiguration() {
+        GlobalRedisConfiguration redisConfiguration = GlobalRedisConfiguration.get();
+        redisConfiguration.setEnabled(true);
+        RedisFingerprintStorage redisFingerprintStorage = RedisFingerprintStorage.get();
+        redisFingerprintStorage.createJedisPool("", 0, 2000, 2000, "default", "", 0, false);
     }
 
     @After
@@ -127,6 +138,31 @@ public class RedisFingerprintStorageTest {
         Fingerprint.delete(id);
         fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(nullValue()));
+    }
+
+    @Test(expected=JedisException.class)
+    public void shouldFailSavingWithIncorrectRedisConfig() throws JedisException,IOException {
+        setIncorrectConfiguration();
+        String id = Util.getDigestOf("shouldFailSavingWithIncorrectRedisConfig");
+        new Fingerprint(null, "foo.jar", Util.fromHexString(id));
+    }
+
+    @Test(expected=JedisException.class)
+    public void shouldFailLoadingWithIncorrectRedisConfig() throws JedisException,IOException {
+        setConfiguration();
+        String id = Util.getDigestOf("shouldFailLoadingWithIncorrectRedisConfig");
+        new Fingerprint(null, "foo.jar", Util.fromHexString(id));
+        setIncorrectConfiguration();
+        Fingerprint.load(id);
+    }
+
+    @Test(expected=JedisException.class)
+    public void shouldFailDeletingWithIncorrectRedisConfig() throws JedisException,IOException {
+        setConfiguration();
+        String id = Util.getDigestOf("shouldFailDeletingWithIncorrectRedisConfig");
+        new Fingerprint(null, "foo.jar", Util.fromHexString(id));
+        setIncorrectConfiguration();
+        Fingerprint.delete(id);
     }
 
     @Test
