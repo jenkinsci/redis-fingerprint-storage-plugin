@@ -51,4 +51,4 @@ All fingerprints will now be saved in the Redis instance, and not locally :)
 
 == References
 
-link:https://github.com/jenkinsci/jep/pull/289[JEP]
+link:https://github.com/jenkinsci/jep/tree/master/jep/226[JEP-226]
