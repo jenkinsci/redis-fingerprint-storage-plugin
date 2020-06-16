@@ -39,6 +39,7 @@ import org.testcontainers.containers.GenericContainer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisException;
 
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.Matchers.nullValue;
@@ -98,11 +99,13 @@ public class RedisFingerprintStorageTest {
     @Test
     public void roundTrip() throws IOException {
         setConfiguration();
+        String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
         String id = Util.getDigestOf("roundTrip");
         Fingerprint fingerprintSaved = new Fingerprint(null, "foo.jar", Util.fromHexString(id));
         Fingerprint fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(not(nullValue())));
         assertThat(fingerprintSaved.toString(), is(equalTo(fingerprintLoaded.toString())));
+        assertThat(jedis.smembers(instanceId), hasItem(id));
     }
 
     @Test
@@ -125,11 +128,13 @@ public class RedisFingerprintStorageTest {
     @Test
     public void shouldDeleteFingerprint() throws IOException {
         setConfiguration();
+        String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
         String id = Util.getDigestOf("shouldDeleteFingerprint");
         new Fingerprint(null, "foo.jar", Util.fromHexString(id));
         Fingerprint.delete(id);
         Fingerprint fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(nullValue()));
+        assertThat(jedis.smembers(instanceId), not(hasItem(id)));
         Fingerprint.delete(id);
         fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(nullValue()));
@@ -158,6 +163,16 @@ public class RedisFingerprintStorageTest {
         new Fingerprint(null, "foo.jar", Util.fromHexString(id));
         setIncorrectConfiguration();
         Fingerprint.delete(id);
+    }
+
+    @Test
+    public void testIsReady() throws IOException {
+        setConfiguration();
+        FingerprintStorage fingerprintStorage = FingerprintStorage.get();
+        assertThat(fingerprintStorage.isReady(), is(false));
+        String id = Util.getDigestOf("testIsReady");
+        new Fingerprint(null, "foo.jar", Util.fromHexString(id));
+        assertThat(fingerprintStorage.isReady(), is(true));
     }
 
 }

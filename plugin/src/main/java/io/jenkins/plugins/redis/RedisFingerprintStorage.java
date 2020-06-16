@@ -45,6 +45,7 @@ import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
 
 /**
@@ -93,7 +94,10 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         StringWriter writer = new StringWriter();
         Fingerprint.getXStream().toXML(fp, writer);
         try (Jedis jedis = getJedis()) {
-            jedis.set(instanceId + fp.getHashString(), writer.toString());
+            Transaction transaction = jedis.multi();
+            transaction.set(instanceId + fp.getHashString(), writer.toString());
+            transaction.sadd(instanceId, fp.getHashString());
+            transaction.exec();
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in saving fingerprint: " + fp.toString(), e);
             throw e;
@@ -135,9 +139,24 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      */
     public void delete(@NonNull String id) throws JedisException {
         try (Jedis jedis = getJedis()) {
-            jedis.del(instanceId + id);
+            Transaction transaction = jedis.multi();
+            transaction.del(instanceId + id);
+            transaction.srem(instanceId, id);
+            transaction.exec();
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in deleting fingerprint: " + id, e);
+            throw e;
+        }
+    }
+
+    /**
+     * Returns true if there's some data in the fingerprint database.
+     */
+    public boolean isReady() {
+        try (Jedis jedis = getJedis()) {
+            return jedis.smembers(instanceId).size() != 0;
+        } catch (JedisException e) {
+            LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
             throw e;
         }
     }
