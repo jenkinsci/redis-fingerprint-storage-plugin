@@ -105,7 +105,7 @@ public class RedisFingerprintStorageTest {
         Fingerprint fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(not(nullValue())));
         assertThat(fingerprintSaved.toString(), is(equalTo(fingerprintLoaded.toString())));
-        assertThat(jedis.smembers("INSTANCE|" + instanceId), hasItem(id));
+        assertThat(jedis.smembers(instanceId), hasItem(id));
     }
 
     @Test
@@ -134,7 +134,7 @@ public class RedisFingerprintStorageTest {
         Fingerprint.delete(id);
         Fingerprint fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(nullValue()));
-        assertThat(jedis.smembers("INSTANCE|" + instanceId), not(hasItem(id)));
+        assertThat(jedis.smembers(instanceId), not(hasItem(id)));
         Fingerprint.delete(id);
         fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(nullValue()));
