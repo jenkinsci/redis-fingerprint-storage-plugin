@@ -53,7 +53,6 @@ public class GlobalRedisConfigurationTest {
         GlobalRedisConfiguration g = GlobalRedisConfiguration.get();
         g.setSocketTimeout(3000);
         g.setConnectionTimeout(3000);
-        g.setEnabled(true);
         g.setCredentialsId("dummy");
         g.setDatabase(0);
         g.setHost("dummy");
