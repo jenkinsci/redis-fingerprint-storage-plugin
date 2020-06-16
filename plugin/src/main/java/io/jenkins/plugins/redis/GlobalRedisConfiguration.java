@@ -61,7 +61,6 @@ import java.util.List;
 @Symbol("redis")
 public class GlobalRedisConfiguration extends GlobalConfiguration {
 
-    private boolean enabled;
     private String host = "localhost";
     private int port = 6379;
     private int database = 0;
@@ -72,24 +71,10 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
 
     public GlobalRedisConfiguration() {
         load();
-        setEnabled(this.enabled);
     }
 
     public static GlobalRedisConfiguration get() {
         return GlobalConfiguration.all().getInstance(GlobalRedisConfiguration.class);
-    }
-
-    public boolean getEnabled() {
-        return enabled;
-    }
-
-    void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-        if (enabled){
-            System.setProperty("FingerprintStorageEngine", "io.jenkins.plugins.redis.RedisFingerprintStorage");
-        } else {
-            System.setProperty("FingerprintStorageEngine", "jenkins.fingerprints.FileFingerprintStorage");
-        }
     }
 
     public String getHost() {
@@ -192,7 +177,6 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) {
         json = json.getJSONObject("redis");
-        setEnabled(json.getBoolean("enabled"));
         setHost(json.getString("host"));
         setPort(json.getInt("port"));
         setDatabase(json.getInt("database"));

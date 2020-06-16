@@ -53,8 +53,5 @@ THE SOFTWARE.
             CAUTION: It is the responsibility of the admins to ensure the security of the Redis instance as fingerprints
             may contain sensitive information.
         </f:entry>
-        <f:entry title="Enabled">
-            <f:checkbox field="enabled" default="${it.enabled}" />
-        </f:entry>
     </f:section>
 </j:jelly>
