@@ -24,10 +24,15 @@
 package io.jenkins.plugins.redis;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import hudson.model.User;
+import hudson.security.ACL;
+import hudson.security.ACLContext;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.MockAuthorizationStrategy;
 import org.testcontainers.containers.GenericContainer;
 
 import javax.servlet.ServletException;
@@ -75,6 +80,16 @@ public class GlobalRedisConfigurationTest {
         result = globalRedisConfiguration.doTestRedisConnection(redis.getHost(), redis.getFirstMappedPort(), 0, false,
                 "", 2000, 2000);
         assertThat(result.kind, is(FormValidation.Kind.OK));
+
+        j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
+        j.jenkins.setAuthorizationStrategy(new MockAuthorizationStrategy());
+
+        try (ACLContext ignored = ACL.as(User.getOrCreateByIdOrFullName("dev"))) {
+            assertThat(j.jenkins.hasPermission(Jenkins.ADMINISTER), is(false));
+            result = globalRedisConfiguration.doTestRedisConnection(redis.getHost(), redis.getFirstMappedPort(), 0, false,
+                    "", 2000, 2000);
+            assertThat(result.kind, is(FormValidation.Kind.ERROR));
+        }
     }
 
 }
