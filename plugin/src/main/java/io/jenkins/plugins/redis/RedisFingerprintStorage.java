@@ -42,10 +42,7 @@ import java.util.logging.Level;
 
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.Transaction;
+import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisException;
 
 /**
@@ -83,7 +80,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
                 password, database, "Jenkins", ssl);
     }
 
-    private @NonNull Jedis getJedis() throws JedisException{
+    @NonNull Jedis getJedis() throws JedisException{
         return jedisPool.getResource();
     }
 
@@ -155,6 +152,16 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     public boolean isReady() {
         try (Jedis jedis = getJedis()) {
             return jedis.smembers(instanceId).size() != 0;
+        } catch (JedisException e) {
+            LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
+            throw e;
+        }
+    }
+
+    ScanResult<String> getFingerprintIdsForCleanup(String cur) throws JedisException{
+        ScanParams scanParams = new ScanParams().count(100);
+        try (Jedis jedis = getJedis()) {
+            return jedis.sscan(instanceId, cur, scanParams);
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
             throw e;
