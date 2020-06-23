@@ -42,7 +42,8 @@ THE SOFTWARE.
 
     <properties>
         <!-- TODO https://github.com/jenkinsci/jenkins/pull/4731 -->
-        <jenkins.version>2.242-rc30049.a5310b10d6f4</jenkins.version>
+        <jenkins.version>2.242-SNAPSHOT</jenkins.version>
+        <relativePath>../jenkins/core/target</relativePath>
         <java.level>8</java.level>
         <useBeta>true</useBeta>
     </properties>
