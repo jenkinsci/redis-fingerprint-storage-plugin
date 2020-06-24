@@ -89,7 +89,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
                 password, database, "Jenkins", ssl);
     }
 
-    @NonNull Jedis getJedis() throws JedisException{
+    private @NonNull Jedis getJedis() throws JedisException{
         return jedisPool.getResource();
     }
 
