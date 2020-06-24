@@ -31,7 +31,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import hudson.model.FingerprintCleanupThread;
 import hudson.model.TaskListener;
 import jenkins.fingerprints.FingerprintStorage;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
@@ -191,6 +195,26 @@ public class RedisFingerprintStorageTest {
         Fingerprint fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(nullValue()));
         assertThat(jedis.smembers(instanceId), not(hasItem(id)));
+    }
+
+    @Test
+    public void testBulkLoad() throws IOException {
+        setConfiguration();
+        String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
+        List<String> fingerprintIds = new ArrayList<>();
+
+        for (int i = 0; i < 3; i++) {
+            String fingerprintId = Util.getDigestOf(Integer.toString(i));
+            new Fingerprint(null, "foo.jar", Util.fromHexString(fingerprintId));
+            fingerprintIds.add(fingerprintId);
+        }
+
+        List<Fingerprint> fingerprints = RedisFingerprintStorage.get().bulkLoad(fingerprintIds);
+
+        for (int i = 0; i < 3; i++) {
+            assertThat(fingerprints.get(i), is(not(nullValue())));
+            assertThat(jedis.smembers(instanceId), hasItem(fingerprintIds.get(i)));
+        }
     }
 
     private static class TestTaskListener implements TaskListener {

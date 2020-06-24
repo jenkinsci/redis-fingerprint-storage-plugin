@@ -39,6 +39,7 @@ import java.io.StringWriter;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -208,18 +209,20 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     }
 
     List<Fingerprint> bulkLoad(List<String> ids) throws IOException {
-        for (int i = 0; i < ids.size(); i++) {
-            ids.set(i, instanceId + ids.get(i));
+        List<String> instanceConcatenatedIds = new ArrayList<>();
+
+        for (String id : ids) {
+            instanceConcatenatedIds.add(instanceId + id);
         }
 
-        String[] fingerprintIds = ids.toArray(new String[ids.size()]);
+        String[] fingerprintIds = instanceConcatenatedIds.toArray(new String[instanceConcatenatedIds.size()]);
         try (Jedis jedis = getJedis()) {
             List<String> fingerprintBlobs = jedis.mget(fingerprintIds);
             List<Fingerprint> fingerprints = new ArrayList<>();
             for (String fingerprintBlob : fingerprintBlobs) {
                 fingerprints.add(blobToFingerprint(fingerprintBlob));
             }
-            return fingerprints;
+            return Collections.unmodifiableList(fingerprints);
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
             throw e;
