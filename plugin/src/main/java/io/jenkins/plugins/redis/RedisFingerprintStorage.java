@@ -158,7 +158,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         }
     }
 
-    ScanResult<String> getFingerprintIdsForCleanup(String cur) throws JedisException{
+    ScanResult<String> getFingerprintIdsForCleanup(String cur) throws JedisException {
         ScanParams scanParams = new ScanParams().count(100);
         try (Jedis jedis = getJedis()) {
             return jedis.sscan(instanceId, cur, scanParams);
