@@ -28,6 +28,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 import hudson.Extension;
 import hudson.ExtensionList;
+import hudson.model.TaskListener;
 import jenkins.fingerprints.FingerprintStorage;
 import hudson.model.Fingerprint;
 import hudson.Util;
@@ -164,6 +165,33 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         }
     }
 
+    public void execute(TaskListener listener) {
+        String currentPointer = redis.clients.jedis.ScanParams.SCAN_POINTER_START;
+
+        try {
+            do {
+                ScanResult<String> scanResult = RedisFingerprintStorage.get().getFingerprintIdsForCleanup(currentPointer);
+                List<String> fingerprintIds = scanResult.getResult();
+
+                try {
+                    List<Fingerprint> fingerprints = bulkLoad(fingerprintIds);
+                    for (Fingerprint fingerprint : fingerprints) {
+                        if (fingerprint != null) {
+                            cleanFingerprint(fingerprint, listener);
+                        }
+                    }
+                } catch (IOException e) {
+                    LOGGER.log(Level.WARNING, "Fingerprints found were malformed.", e);
+                }
+
+                currentPointer = scanResult.getCursor();
+            } while (!currentPointer.equals(redis.clients.jedis.ScanParams.SCAN_POINTER_START));
+        } catch (JedisException e) {
+            LOGGER.log(Level.WARNING, "Jedis failed to clean fingerprints. ", e);
+        }
+
+    }
+
     ScanResult<String> getFingerprintIdsForCleanup(String cur) throws JedisException {
         ScanParams scanParams = new ScanParams().count(100);
         try (Jedis jedis = getJedis()) {
@@ -175,6 +203,10 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     }
 
     List<Fingerprint> bulkLoad(List<String> ids) throws IOException {
+        for (int i = 0; i < ids.size(); i++) {
+            ids.set(i, instanceId + ids.get(i));
+        }
+
         String[] fingerprintIds = ids.toArray(new String[ids.size()]);
         try (Jedis jedis = getJedis()) {
             List<String> fingerprintBlobs = jedis.mget(fingerprintIds);

@@ -23,11 +23,16 @@
  */
 package io.jenkins.plugins.redis;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Util;
 import hudson.model.Fingerprint;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+
+import hudson.model.TaskListener;
 import jenkins.fingerprints.FingerprintStorage;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.junit.After;
@@ -171,6 +176,34 @@ public class RedisFingerprintStorageTest {
         String id = Util.getDigestOf("testIsReady");
         new Fingerprint(null, "foo.jar", Util.fromHexString(id));
         assertThat(fingerprintStorage.isReady(), is(true));
+    }
+
+    @Test
+    public void shouldDeleteFingerprintAfterCleanup() throws IOException {
+        TestTaskListener testTaskListener = new TestTaskListener();
+        setConfiguration();
+        String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
+        String id = Util.getDigestOf("shouldDeleteFingerprintAfterCleanup");
+        new Fingerprint(null, "foo.jar", Util.fromHexString(id));
+
+        RedisFingerprintStorage.get().execute(testTaskListener);
+
+        Fingerprint fingerprintLoaded = Fingerprint.load(id);
+        assertThat(fingerprintLoaded, is(nullValue()));
+        assertThat(jedis.smembers(instanceId), not(hasItem(id)));
+    }
+
+    private static class TestTaskListener implements TaskListener {
+
+        private ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        private PrintStream logStream = new PrintStream(outputStream);
+
+        @NonNull
+        @Override
+        public PrintStream getLogger() {
+            return logStream;
+        }
+
     }
 
 }
