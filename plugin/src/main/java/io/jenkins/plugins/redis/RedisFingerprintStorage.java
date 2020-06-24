@@ -126,7 +126,6 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         if (loadedData == null) return null;
 
         return blobToFingerprint(loadedData);
-
     }
 
     private Fingerprint blobToFingerprint(String blob) throws IOException {
@@ -142,6 +141,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         }
 
         return loadedFingerprint;
+
     }
 
     /**

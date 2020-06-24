@@ -32,10 +32,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import hudson.model.FingerprintCleanupThread;
 import hudson.model.TaskListener;
 import jenkins.fingerprints.FingerprintStorage;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
