@@ -23,8 +23,10 @@
  */
 package io.jenkins.plugins.redis;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Util;
 import hudson.model.Fingerprint;
+import hudson.model.TaskListener;
 import jenkins.fingerprints.FingerprintCleanupThread;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.junit.After;
@@ -36,7 +38,9 @@ import org.testcontainers.containers.GenericContainer;
 import redis.clients.jedis.Jedis;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -84,22 +88,30 @@ public class RedisFingerprintCleanupTest {
 
     @Test
     public void shouldDeleteFingerprintAfterCleanup() throws IOException {
+        TestTaskListener testTaskListener = new TestTaskListener();
         setConfiguration();
         String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
         String id = Util.getDigestOf("shouldDeleteFingerprintAfterCleanup");
         new Fingerprint(null, "foo.jar", Util.fromHexString(id));
 
-        // Check if fingerprint has been stored
-        Fingerprint fingerprintLoaded = Fingerprint.load(id);
-        assertThat(fingerprintLoaded, is(not(nullValue())));
-        assertThat(jedis.smembers(instanceId), hasItem(id));
+        FingerprintCleanupThread.get().execute(testTaskListener);
 
-        // Check if fingerprint gets deleted after cleanup
-        RedisFingerprintCleanup redisFingerprintCleanup = new RedisFingerprintCleanup();
-        redisFingerprintCleanup.execute(null);
-        fingerprintLoaded = Fingerprint.load(id);
+        Fingerprint fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(nullValue()));
         assertThat(jedis.smembers(instanceId), not(hasItem(id)));
+    }
+
+    private static class TestTaskListener implements TaskListener {
+
+        private ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        private PrintStream logStream = new PrintStream(outputStream);
+
+        @NonNull
+        @Override
+        public PrintStream getLogger() {
+            return logStream;
+        }
+
     }
 
 }
