@@ -37,6 +37,8 @@ import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -116,10 +118,15 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
         if (loadedData == null) return null;
 
+        return blobToFingerprint(loadedData);
+
+    }
+
+    private Fingerprint blobToFingerprint(String blob) throws IOException {
         Object loadedObject = null;
         Fingerprint loadedFingerprint;
 
-        try (InputStream in = new ByteArrayInputStream(loadedData.getBytes(StandardCharsets.UTF_8))) {
+        try (InputStream in = new ByteArrayInputStream(blob.getBytes(StandardCharsets.UTF_8))) {
             loadedObject = Fingerprint.getXStream().fromXML(in);
             loadedFingerprint = (Fingerprint) loadedObject;
         } catch (RuntimeException e) {
@@ -128,7 +135,6 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         }
 
         return loadedFingerprint;
-
     }
 
     /**
@@ -162,6 +168,21 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         ScanParams scanParams = new ScanParams().count(100);
         try (Jedis jedis = getJedis()) {
             return jedis.sscan(instanceId, cur, scanParams);
+        } catch (JedisException e) {
+            LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
+            throw e;
+        }
+    }
+
+    List<Fingerprint> bulkLoad(List<String> ids) throws IOException {
+        String[] fingerprintIds = ids.toArray(new String[ids.size()]);
+        try (Jedis jedis = getJedis()) {
+            List<String> fingerprintBlobs = jedis.mget(fingerprintIds);
+            List<Fingerprint> fingerprints = new ArrayList<>();
+            for (String fingerprintBlob : fingerprintBlobs) {
+                fingerprints.add(blobToFingerprint(fingerprintBlob));
+            }
+            return fingerprints;
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
             throw e;

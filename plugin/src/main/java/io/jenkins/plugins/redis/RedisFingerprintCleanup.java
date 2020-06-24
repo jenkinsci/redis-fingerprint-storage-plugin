@@ -48,16 +48,17 @@ public class RedisFingerprintCleanup extends FingerprintCleanupThread {
                 ScanResult<String> scanResult = RedisFingerprintStorage.get().getFingerprintIdsForCleanup(currentPointer);
                 List<String> fingerprintIds = scanResult.getResult();
 
-                for (String fingerprintId : fingerprintIds) {
-                    try {
-                        Fingerprint fingerprint = Fingerprint.load(fingerprintId);
+                try {
+                    List<Fingerprint> fingerprints = RedisFingerprintStorage.get().bulkLoad(fingerprintIds);
+                    for (Fingerprint fingerprint : fingerprints) {
                         if (fingerprint != null) {
                             cleanFingerprint(fingerprint, listener);
                         }
-                    } catch (IOException e) {
-                        LOGGER.log(Level.WARNING, "Fingerprints with id " + fingerprintId + "is malformed.", e);
                     }
+                } catch (IOException e) {
+                    LOGGER.log(Level.WARNING, "Fingerprints found were malformed.", e);
                 }
+
                 currentPointer = scanResult.getCursor();
             } while (!currentPointer.equals(redis.clients.jedis.ScanParams.SCAN_POINTER_START));
         } catch (JedisException e) {
