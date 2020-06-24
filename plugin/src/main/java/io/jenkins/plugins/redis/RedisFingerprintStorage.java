@@ -45,7 +45,12 @@ import java.util.logging.Level;
 
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
-import redis.clients.jedis.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
 
 /**
@@ -166,7 +171,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     }
 
     public void execute(TaskListener listener) {
-        String currentPointer = redis.clients.jedis.ScanParams.SCAN_POINTER_START;
+        String currentPointer = ScanParams.SCAN_POINTER_START;
 
         try {
             do {
@@ -185,7 +190,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
                 }
 
                 currentPointer = scanResult.getCursor();
-            } while (!currentPointer.equals(redis.clients.jedis.ScanParams.SCAN_POINTER_START));
+            } while (!currentPointer.equals(ScanParams.SCAN_POINTER_START));
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed to clean fingerprints. ", e);
         }
