@@ -171,7 +171,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         }
     }
 
-    public void execute(TaskListener listener) {
+    public void iterateAndCleanupFingerprints(TaskListener listener) {
         String currentPointer = ScanParams.SCAN_POINTER_START;
 
         try {

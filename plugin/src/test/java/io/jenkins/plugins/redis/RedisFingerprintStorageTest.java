@@ -188,7 +188,7 @@ public class RedisFingerprintStorageTest {
         String id = Util.getDigestOf("shouldDeleteFingerprintAfterCleanup");
         new Fingerprint(null, "foo.jar", Util.fromHexString(id));
 
-        RedisFingerprintStorage.get().execute(testTaskListener);
+        RedisFingerprintStorage.get().iterateAndCleanupFingerprints(testTaskListener);
 
         Fingerprint fingerprintLoaded = Fingerprint.load(id);
         assertThat(fingerprintLoaded, is(nullValue()));
