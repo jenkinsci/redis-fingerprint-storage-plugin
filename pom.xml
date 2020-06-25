@@ -33,7 +33,7 @@ THE SOFTWARE.
     </parent>
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>redis-fingerprint-storage-parent</artifactId>
-    <version>0.1-alpha-1</version>
+    <version>0.1-alpha-2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -62,7 +62,7 @@ THE SOFTWARE.
         <connection>scm:git:git://github.com/jenkinsci/redis-fingerprint-storage-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/redis-fingerprint-storage-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/redis-fingerprint-storage-plugin</url>
-      <tag>redis-fingerprint-storage-parent-0.1-alpha-1</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <repositories>
