@@ -66,7 +66,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     private final String instanceId;
     private static final Logger LOGGER = Logger.getLogger(Fingerprint.class.getName());
     private volatile JedisPool jedisPool;
-    private static final int MAX_COUNT = 100;
+    private static final int MAX_FINGERPRINT_DELETES = 100;
 
     public static RedisFingerprintStorage get() {
         return ExtensionList.lookup(RedisFingerprintStorage.class).get(0);
@@ -200,7 +200,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     }
 
     ScanResult<String> getFingerprintIdsForCleanup(String cur) throws JedisException {
-        ScanParams scanParams = new ScanParams().count(MAX_COUNT);
+        ScanParams scanParams = new ScanParams().count(MAX_FINGERPRINT_DELETES);
         try (Jedis jedis = getJedis()) {
             return jedis.sscan(instanceId, cur, scanParams);
         } catch (JedisException e) {
