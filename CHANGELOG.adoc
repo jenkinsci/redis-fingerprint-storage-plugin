@@ -1,0 +1,10 @@
+= CHANGELOG
+
+== 0.1-alpha-1
+
+=== Added
+
+* Introduced Redis Fingerprint Storage Plugin
+* Add MIT License
+* Implement methods defined by external fingerprint storage API introduced in Jenkins core 2.242 using Jedis. Added tests for the same.
+* Introduced global configuration for configuring the connection to Redis.
