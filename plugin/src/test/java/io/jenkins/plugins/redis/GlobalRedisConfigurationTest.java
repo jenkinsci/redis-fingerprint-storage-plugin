@@ -50,6 +50,41 @@ public class GlobalRedisConfigurationTest {
     public GenericContainer redis = new GenericContainer<>("redis:6.0.4-alpine").withExposedPorts(6379);
 
     @Test
+    public void submitAndReloadConfigurationPageTest() throws Exception {
+        JenkinsRule.WebClient web = j.createWebClient();
+        HtmlForm form = web.goTo("configure").getFormByName("config");
+
+        form.getInputsByName("_.host").get(0).setValueAttribute("local");
+        form.getInputsByName("_.port").get(0).setValueAttribute("3333");
+        form.getInputsByName("_.ssl").get(0).setChecked(false);
+        form.getInputsByName("_.database").get(0).setValueAttribute("3");
+        form.getInputsByName("_.connectionTimeout").get(0).setValueAttribute("3");
+        form.getInputsByName("_.socketTimeout").get(0).setValueAttribute("3");
+
+        j.submit(form);
+
+        form = web.goTo("configure").getFormByName("config");
+
+        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is("local"));
+        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is("3333"));
+        assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(""));
+        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is("3"));
+
+        web.goTo("configure").refresh();
+
+        form = web.goTo("configure").getFormByName("config");
+
+        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is("local"));
+        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is("3333"));
+        assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(""));
+        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is("3"));
+    }
+
+    @Test
     public void configRoundTrip() throws Exception {
         JenkinsRule.WebClient web = j.createWebClient();
         HtmlForm form = web.goTo("configure").getFormByName("config");
