@@ -54,33 +54,51 @@ public class GlobalRedisConfigurationTest {
         JenkinsRule.WebClient web = j.createWebClient();
         HtmlForm form = web.goTo("configure").getFormByName("config");
 
+        assertThat(form.getInputsByName("_.host").size(), is(1));
         form.getInputsByName("_.host").get(0).setValueAttribute("local");
+        assertThat(form.getInputsByName("_.port").size(), is(1));
         form.getInputsByName("_.port").get(0).setValueAttribute("3333");
+        assertThat(form.getInputsByName("_.ssl").size(), is(1));
         form.getInputsByName("_.ssl").get(0).setChecked(false);
+        assertThat(form.getInputsByName("_.database").size(), is(1));
         form.getInputsByName("_.database").get(0).setValueAttribute("3");
+        assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
         form.getInputsByName("_.connectionTimeout").get(0).setValueAttribute("3");
+        assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
         form.getInputsByName("_.socketTimeout").get(0).setValueAttribute("3");
 
         j.submit(form);
 
         form = web.goTo("configure").getFormByName("config");
 
+        assertThat(form.getInputsByName("_.host").size(), is(1));
         assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is("local"));
+        assertThat(form.getInputsByName("_.port").size(), is(1));
         assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is("3333"));
+        assertThat(form.getInputsByName("_.ssl").size(), is(1));
         assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(""));
+        assertThat(form.getInputsByName("_.database").size(), is(1));
         assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
         assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
         assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is("3"));
 
         web.goTo("configure").refresh();
 
         form = web.goTo("configure").getFormByName("config");
 
+        assertThat(form.getInputsByName("_.host").size(), is(1));
         assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is("local"));
+        assertThat(form.getInputsByName("_.port").size(), is(1));
         assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is("3333"));
+        assertThat(form.getInputsByName("_.ssl").size(), is(1));
         assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(""));
+        assertThat(form.getInputsByName("_.database").size(), is(1));
         assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
         assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
         assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is("3"));
     }
 
