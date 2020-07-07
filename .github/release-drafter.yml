@@ -1,0 +1,27 @@
+version-template: '$MAJOR.$MINOR-alpha-$PATCH'
+name-template: 'v$RESOLVED_VERSION 🌈'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 New features and improvements'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+  - title: '🧰 Maintenance'
+    label: 'chore'
+  - title: '📝 Documentation updates'
+    label: 'documentation'
+  - title: '📦 Dependency updates'
+    label: 'dependencies'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+
+template: |
+  ## Changes
+
+  $CHANGES
