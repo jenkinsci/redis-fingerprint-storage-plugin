@@ -40,11 +40,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import jenkins.fingerprints.FingerprintStorageDescriptor;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
+import org.kohsuke.stapler.DataBoundConstructor;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
 
@@ -59,32 +59,15 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
     private final String instanceId;
     private static final Logger LOGGER = Logger.getLogger(Fingerprint.class.getName());
-    private volatile JedisPool jedisPool;
 
     public static RedisFingerprintStorage get() {
         return ExtensionList.lookup(RedisFingerprintStorage.class).get(0);
     }
 
+    @DataBoundConstructor
     public RedisFingerprintStorage() throws IOException {
         instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
-        createJedisPoolFromConfig();
-    }
-
-    void createJedisPoolFromConfig() {
-        GlobalRedisConfiguration config = GlobalRedisConfiguration.get();
-        createJedisPool(config.getHost(), config.getPort(), config.getConnectionTimeout(), config.getSocketTimeout(),
-                config.getUsername(), config.getPassword(), config.getDatabase(), config.getSsl());
-    }
-
-    void createJedisPool(
-            String host, int port, int connectionTimeout, int socketTimeout, String username, String password,
-            int database, boolean ssl) {
-        jedisPool = new JedisPool(new JedisPoolConfig(), host, port, connectionTimeout, socketTimeout, username,
-                password, database, "Jenkins", ssl);
-    }
-
-    private @NonNull Jedis getJedis() throws JedisException{
-        return jedisPool.getResource();
+        JedisPoolManager.createJedisPoolFromConfig();
     }
 
     /**
@@ -93,7 +76,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     public synchronized void save(Fingerprint fp) throws JedisException {
         StringWriter writer = new StringWriter();
         Fingerprint.getXStream().toXML(fp, writer);
-        try (Jedis jedis = getJedis()) {
+        try (Jedis jedis = JedisPoolManager.getJedis()) {
             Transaction transaction = jedis.multi();
             transaction.set(instanceId + fp.getHashString(), writer.toString());
             transaction.sadd(instanceId, fp.getHashString());
@@ -110,7 +93,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     public @CheckForNull Fingerprint load(@NonNull String id) throws IOException, JedisException {
         String loadedData;
 
-        try (Jedis jedis = getJedis()) {
+        try (Jedis jedis = JedisPoolManager.getJedis()) {
             loadedData = jedis.get(instanceId + id);
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in loading fingerprint: " + id, e);
@@ -138,7 +121,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Deletes the fingerprint with the given id.
      */
     public void delete(@NonNull String id) throws JedisException {
-        try (Jedis jedis = getJedis()) {
+        try (Jedis jedis = JedisPoolManager.getJedis()) {
             Transaction transaction = jedis.multi();
             transaction.del(instanceId + id);
             transaction.srem(instanceId, id);
@@ -153,12 +136,22 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Returns true if there's some data in the fingerprint database.
      */
     public boolean isReady() {
-        try (Jedis jedis = getJedis()) {
+        try (Jedis jedis = JedisPoolManager.getJedis()) {
             return jedis.smembers(instanceId).size() != 0;
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
             throw e;
         }
+    }
+
+    @Extension
+    public static class DescriptorImpl extends FingerprintStorageDescriptor {
+
+        @Override
+        public String getDisplayName() {
+            return "Redis Fingerprint Storage";
+        }
+
     }
 
 }
