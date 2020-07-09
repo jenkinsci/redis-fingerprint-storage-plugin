@@ -23,12 +23,14 @@
  */
 package io.jenkins.plugins.redis;
 
+import hudson.ExtensionList;
 import hudson.Util;
 import hudson.model.Fingerprint;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import jenkins.fingerprints.FingerprintStorage;
+import jenkins.fingerprints.GlobalFingerprintConfiguration;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.junit.After;
 import org.junit.Before;
@@ -65,20 +67,19 @@ public class RedisFingerprintStorageTest {
     }
 
     private void setConfiguration() {
-        GlobalRedisConfiguration redisConfiguration = GlobalRedisConfiguration.get();
+        RedisFingerprintStorage redisFingerprintStorage = ExtensionList.lookupSingleton(RedisFingerprintStorage.class);
+        GlobalFingerprintConfiguration.get().setFingerprintStorage(redisFingerprintStorage);
         String host = redis.getHost();
         Integer port = redis.getFirstMappedPort();
-        RedisFingerprintStorage redisFingerprintStorage = RedisFingerprintStorage.get();
-        JedisPoolManager.createJedisPool(host, port, 2000, 2000,
-                "default", "", 0, false);
+        JedisPoolManager.createJedisPool(host, port, 2000, 2000, "default", "", 0, false);
     }
 
     /**
      * Sets incorrect Jedis Configuration for testing failures.
      */
     private void setIncorrectConfiguration() {
-        GlobalRedisConfiguration redisConfiguration = GlobalRedisConfiguration.get();
-        RedisFingerprintStorage redisFingerprintStorage = RedisFingerprintStorage.get();
+        RedisFingerprintStorage redisFingerprintStorage = ExtensionList.lookupSingleton(RedisFingerprintStorage.class);
+        GlobalFingerprintConfiguration.get().setFingerprintStorage(redisFingerprintStorage);
         JedisPoolManager.createJedisPool("", 0, 2000, 2000, "default", "", 0, false);
     }
 
