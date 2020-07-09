@@ -185,7 +185,7 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         setConnectionTimeout(json.getInt(("connectionTimeout")));
         setSocketTimeout(json.getInt(("socketTimeout")));
         save();
-        RedisFingerprintStorage.get().createJedisPoolFromConfig();
+        JedisPoolManager.createJedisPoolFromConfig();
         return true;
     }
 
