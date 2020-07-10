@@ -34,6 +34,9 @@ import jenkins.model.Jenkins;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Helper class to support credential operations.
+ */
 public class CredentialHelper {
 
     static @NonNull String getUsernameFromCredential(@CheckForNull StandardUsernamePasswordCredentials credential) {
