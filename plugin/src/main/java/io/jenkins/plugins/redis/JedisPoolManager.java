@@ -30,28 +30,20 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.exceptions.JedisException;
 
-public class JedisPoolManager {
+public enum JedisPoolManager {
 
-    private volatile JedisPool jedisPool;
-    private static JedisPoolManager jedisPoolManager;
+    INSTANCE;
 
-    private JedisPoolManager() {
+    JedisPoolManager() {
         createJedisPoolFromConfig();
     }
 
-    public static JedisPoolManager get() {
-        if (jedisPoolManager == null) {
-            synchronized (JedisPoolManager.class) {
-                if(jedisPoolManager == null) {
-                    jedisPoolManager = new JedisPoolManager();
-                }
-            }
-        }
-        return jedisPoolManager;
-    }
+    private volatile JedisPool jedisPool;
 
     void createJedisPoolFromConfig() {
-        RedisFingerprintStorage redisFingerprintStorage = (RedisFingerprintStorage) GlobalFingerprintConfiguration.get().getFingerprintStorage();
+        RedisFingerprintStorage redisFingerprintStorage = (RedisFingerprintStorage) GlobalFingerprintConfiguration.get()
+                .getFingerprintStorage();
+
         createJedisPool(redisFingerprintStorage.getHost(), redisFingerprintStorage.getPort(),
                 redisFingerprintStorage.getConnectionTimeout(), redisFingerprintStorage.getSocketTimeout(),
                 redisFingerprintStorage.getUsername(), redisFingerprintStorage.getPassword(),
@@ -69,4 +61,5 @@ public class JedisPoolManager {
     @NonNull Jedis getJedis() throws JedisException {
         return jedisPool.getResource();
     }
+
 }

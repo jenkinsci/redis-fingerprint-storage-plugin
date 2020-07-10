@@ -25,6 +25,7 @@ package io.jenkins.plugins.redis;
 
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
+import jenkins.fingerprints.GlobalFingerprintConfiguration;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -36,15 +37,15 @@ public class ConfigurationAsCodeCompatibilityTest {
     @Rule
     public JenkinsConfiguredWithCodeRule jenkinsConfiguredWithCodeRule = new JenkinsConfiguredWithCodeRule();
 
-//    @Test
-//    @ConfiguredWithCode("casc.yml")
-//    public void shouldSupportConfigurationAsCode() {
-//        assertThat(GlobalRedisConfiguration.get().getHost(), is("test"));
-//        assertThat(GlobalRedisConfiguration.get().getPort(), is(3333));
-//        assertThat(GlobalRedisConfiguration.get().getSsl(), is(true));
-//        assertThat(GlobalRedisConfiguration.get().getDatabase(), is(3));
-//        assertThat(GlobalRedisConfiguration.get().getConnectionTimeout(), is(3));
-//        assertThat(GlobalRedisConfiguration.get().getSocketTimeout(), is(3));
-//    }
+    @Test
+    @ConfiguredWithCode("casc.yml")
+    public void shouldSupportConfigurationAsCode() {
+        assertThat(RedisFingerprintStorage.get().getHost(), is("test"));
+        assertThat(RedisFingerprintStorage.get().getPort(), is(3333));
+        assertThat(RedisFingerprintStorage.get().getSsl(), is(true));
+        assertThat(RedisFingerprintStorage.get().getDatabase(), is(3));
+        assertThat(RedisFingerprintStorage.get().getConnectionTimeout(), is(3));
+        assertThat(RedisFingerprintStorage.get().getSocketTimeout(), is(3));
+    }
 
 }
