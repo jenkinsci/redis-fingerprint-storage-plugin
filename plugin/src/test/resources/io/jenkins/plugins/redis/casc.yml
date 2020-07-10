@@ -21,10 +21,12 @@
 # THE SOFTWARE.
 
 unclassified:
-  redis:
-    host: "test"
-    port: 3333
-    ssl: true
-    database: 3
-    connectionTimeout: 3
-    socketTimeout: 3
+  globalFingerprintConfiguration:
+    fingerprintStorage:
+      redis:
+        host: "test"
+        port: 3333
+        ssl: true
+        database: 3
+        connectionTimeout: 3
+        socketTimeout: 3
