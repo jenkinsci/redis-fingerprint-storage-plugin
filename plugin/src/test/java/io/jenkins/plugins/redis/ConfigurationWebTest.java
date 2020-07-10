@@ -23,6 +23,7 @@
  */
 package io.jenkins.plugins.redis;
 
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import hudson.model.User;
 import hudson.security.ACL;
@@ -38,6 +39,7 @@ import org.testcontainers.containers.GenericContainer;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.Iterator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -106,25 +108,41 @@ public class ConfigurationWebTest {
 
     @Test
     public void changesToRedisConfigCauseChangesOnWebUI() throws Exception {
+        RedisConfiguration.setConfiguration("host", 3333, 3, 3, "default", "", 3, false);
+
         JenkinsRule.WebClient web = j.createWebClient();
         HtmlForm form = web.goTo("configure").getFormByName("config");
         j.submit(form);
 
-        RedisFingerprintStorage redisFingerprintStorage = RedisFingerprintStorage.get();
+        RedisFingerprintStorage redisFingerprintStorage = (RedisFingerprintStorage) GlobalFingerprintConfiguration.get()
+                .getFingerprintStorage();
 
-        redisFingerprintStorage.setSocketTimeout(3000);
-        redisFingerprintStorage.setConnectionTimeout(3000);
-        redisFingerprintStorage.setCredentialsId("dummy");
-        redisFingerprintStorage.setDatabase(0);
-        redisFingerprintStorage.setHost("dummy");
-        redisFingerprintStorage.setPort(3333);
-        redisFingerprintStorage.setSsl(true);
+        assertThat(form.getInputsByName("_.host").size(), is(1));
+        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is("host"));
+        assertThat(form.getInputsByName("_.port").size(), is(1));
+        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is("3333"));
+        assertThat(form.getInputsByName("_.ssl").size(), is(1));
+        assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(""));
+        assertThat(form.getInputsByName("_.database").size(), is(1));
+        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
+        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
+        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is("3"));
 
-        GlobalFingerprintConfiguration.get().save();
-        GlobalFingerprintConfiguration.get().load();
-
-        form = web.goTo("configure").getFormByName("config");
-        j.submit(form);
+//        redisFingerprintStorage.setSocketTimeout(3000);
+//        redisFingerprintStorage.setConnectionTimeout(3000);
+//        redisFingerprintStorage.setCredentialsId("dummy");
+//        redisFingerprintStorage.setDatabase(0);
+//        redisFingerprintStorage.setHost("dummy");
+//        redisFingerprintStorage.setPort(3333);
+//        redisFingerprintStorage.setSsl(true);
+//
+//        GlobalFingerprintConfiguration.get().save();
+//        GlobalFingerprintConfiguration.get().load();
+//
+//        form = web.goTo("configure").getFormByName("config");
+//        j.submit(form);
     }
 
     @Test
