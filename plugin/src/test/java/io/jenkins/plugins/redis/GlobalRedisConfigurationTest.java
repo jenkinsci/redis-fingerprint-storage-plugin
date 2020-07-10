@@ -28,6 +28,7 @@ import hudson.model.User;
 import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.util.FormValidation;
+import jenkins.fingerprints.GlobalFingerprintConfiguration;
 import jenkins.model.Jenkins;
 import org.junit.Rule;
 import org.junit.Test;
@@ -102,22 +103,25 @@ public class GlobalRedisConfigurationTest {
         assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is("3"));
     }
 
+
     @Test
     public void configRoundTrip() throws Exception {
         JenkinsRule.WebClient web = j.createWebClient();
         HtmlForm form = web.goTo("configure").getFormByName("config");
         j.submit(form);
 
-        GlobalRedisConfiguration g = GlobalRedisConfiguration.get();
-        g.setSocketTimeout(3000);
-        g.setConnectionTimeout(3000);
-        g.setCredentialsId("dummy");
-        g.setDatabase(0);
-        g.setHost("dummy");
-        g.setPort(3333);
-        g.setSsl(true);
-        g.save();
-        g.load();
+        RedisFingerprintStorage redisFingerprintStorage = RedisFingerprintStorage.get();
+
+        redisFingerprintStorage.setSocketTimeout(3000);
+        redisFingerprintStorage.setConnectionTimeout(3000);
+        redisFingerprintStorage.setCredentialsId("dummy");
+        redisFingerprintStorage.setDatabase(0);
+        redisFingerprintStorage.setHost("dummy");
+        redisFingerprintStorage.setPort(3333);
+        redisFingerprintStorage.setSsl(true);
+
+        GlobalFingerprintConfiguration.get().save();
+        GlobalFingerprintConfiguration.get().load();
 
         form = web.goTo("configure").getFormByName("config");
         j.submit(form);
@@ -125,11 +129,11 @@ public class GlobalRedisConfigurationTest {
 
     @Test
     public void testTestRedisConnection() throws IOException, ServletException {
-        GlobalRedisConfiguration globalRedisConfiguration = GlobalRedisConfiguration.get();
-        FormValidation result = globalRedisConfiguration.doTestRedisConnection("", 0, 0, false, "", 2000, 2000);
+        RedisFingerprintStorage.DescriptorImpl descriptor = new RedisFingerprintStorage.DescriptorImpl();
+        FormValidation result = descriptor.doTestRedisConnection("", 0, 0, false, "", 2000, 2000);
         assertThat(result.kind, is(FormValidation.Kind.ERROR));
 
-        result = globalRedisConfiguration.doTestRedisConnection(redis.getHost(), redis.getFirstMappedPort(), 0, false,
+        result = descriptor.doTestRedisConnection(redis.getHost(), redis.getFirstMappedPort(), 0, false,
                 "", 2000, 2000);
         assertThat(result.kind, is(FormValidation.Kind.OK));
 
@@ -138,7 +142,7 @@ public class GlobalRedisConfigurationTest {
 
         try (ACLContext ignored = ACL.as(User.getOrCreateByIdOrFullName("dev"))) {
             assertThat(j.jenkins.hasPermission(Jenkins.ADMINISTER), is(false));
-            result = globalRedisConfiguration.doTestRedisConnection(redis.getHost(), redis.getFirstMappedPort(), 0, false,
+            result = descriptor.doTestRedisConnection(redis.getHost(), redis.getFirstMappedPort(), 0, false,
                     "", 2000, 2000);
             assertThat(result.kind, is(FormValidation.Kind.ERROR));
         }
