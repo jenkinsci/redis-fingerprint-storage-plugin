@@ -36,15 +36,15 @@ public class ConfigurationAsCodeCompatibilityTest {
     @Rule
     public JenkinsConfiguredWithCodeRule jenkinsConfiguredWithCodeRule = new JenkinsConfiguredWithCodeRule();
 
-    @Test
-    @ConfiguredWithCode("casc.yml")
-    public void shouldSupportConfigurationAsCode() {
-        assertThat(GlobalRedisConfiguration.get().getHost(), is("test"));
-        assertThat(GlobalRedisConfiguration.get().getPort(), is(3333));
-        assertThat(GlobalRedisConfiguration.get().getSsl(), is(true));
-        assertThat(GlobalRedisConfiguration.get().getDatabase(), is(3));
-        assertThat(GlobalRedisConfiguration.get().getConnectionTimeout(), is(3));
-        assertThat(GlobalRedisConfiguration.get().getSocketTimeout(), is(3));
-    }
+//    @Test
+//    @ConfiguredWithCode("casc.yml")
+//    public void shouldSupportConfigurationAsCode() {
+//        assertThat(GlobalRedisConfiguration.get().getHost(), is("test"));
+//        assertThat(GlobalRedisConfiguration.get().getPort(), is(3333));
+//        assertThat(GlobalRedisConfiguration.get().getSsl(), is(true));
+//        assertThat(GlobalRedisConfiguration.get().getDatabase(), is(3));
+//        assertThat(GlobalRedisConfiguration.get().getConnectionTimeout(), is(3));
+//        assertThat(GlobalRedisConfiguration.get().getSocketTimeout(), is(3));
+//    }
 
 }

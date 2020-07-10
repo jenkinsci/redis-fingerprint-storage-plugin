@@ -86,7 +86,6 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     @DataBoundConstructor
     public RedisFingerprintStorage() throws IOException {
         instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
-        JedisPoolManager.createJedisPoolFromConfig();
     }
 
     /**
@@ -95,7 +94,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     public synchronized void save(Fingerprint fp) throws JedisException {
         StringWriter writer = new StringWriter();
         Fingerprint.getXStream().toXML(fp, writer);
-        try (Jedis jedis = JedisPoolManager.getJedis()) {
+        try (Jedis jedis = JedisPoolManager.get().getJedis()) {
             Transaction transaction = jedis.multi();
             transaction.set(instanceId + fp.getHashString(), writer.toString());
             transaction.sadd(instanceId, fp.getHashString());
@@ -112,7 +111,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     public @CheckForNull Fingerprint load(@NonNull String id) throws IOException, JedisException {
         String loadedData;
 
-        try (Jedis jedis = JedisPoolManager.getJedis()) {
+        try (Jedis jedis = JedisPoolManager.get().getJedis()) {
             loadedData = jedis.get(instanceId + id);
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in loading fingerprint: " + id, e);
@@ -140,7 +139,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Deletes the fingerprint with the given id.
      */
     public void delete(@NonNull String id) throws JedisException {
-        try (Jedis jedis = JedisPoolManager.getJedis()) {
+        try (Jedis jedis = JedisPoolManager.get().getJedis()) {
             Transaction transaction = jedis.multi();
             transaction.del(instanceId + id);
             transaction.srem(instanceId, id);
@@ -155,7 +154,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Returns true if there's some data in the fingerprint database.
      */
     public boolean isReady() {
-        try (Jedis jedis = JedisPoolManager.getJedis()) {
+        try (Jedis jedis = JedisPoolManager.get().getJedis()) {
             return jedis.smembers(instanceId).size() != 0;
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
