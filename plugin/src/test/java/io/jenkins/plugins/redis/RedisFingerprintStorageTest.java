@@ -23,7 +23,6 @@
  */
 package io.jenkins.plugins.redis;
 
-import hudson.ExtensionList;
 import hudson.Util;
 import hudson.model.Fingerprint;
 
