@@ -105,7 +105,7 @@ public class ConfigurationWebTest {
 
 
     @Test
-    public void configRoundTrip() throws Exception {
+    public void changesToRedisConfigCauseChangesOnWebUI() throws Exception {
         JenkinsRule.WebClient web = j.createWebClient();
         HtmlForm form = web.goTo("configure").getFormByName("config");
         j.submit(form);
