@@ -67,8 +67,7 @@ public class RedisFingerprintStorageTest {
     }
 
     private void setConfiguration() throws IOException {
-        RedisFingerprintStorage redisFingerprintStorage = new RedisFingerprintStorage();
-        GlobalFingerprintConfiguration.get().setFingerprintStorage(redisFingerprintStorage);
+        GlobalFingerprintConfiguration.get().setFingerprintStorage(RedisFingerprintStorage.get());
         String host = redis.getHost();
         Integer port = redis.getFirstMappedPort();
         JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
@@ -79,8 +78,7 @@ public class RedisFingerprintStorageTest {
      * Sets incorrect Jedis Configuration for testing failures.
      */
     private void setIncorrectConfiguration() {
-        RedisFingerprintStorage redisFingerprintStorage = ExtensionList.lookupSingleton(RedisFingerprintStorage.class);
-        GlobalFingerprintConfiguration.get().setFingerprintStorage(redisFingerprintStorage);
+        GlobalFingerprintConfiguration.get().setFingerprintStorage(RedisFingerprintStorage.get());
         JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
         jedisPoolManager.createJedisPool("", 0, 2000, 2000, "default", "", 0, false);
     }
