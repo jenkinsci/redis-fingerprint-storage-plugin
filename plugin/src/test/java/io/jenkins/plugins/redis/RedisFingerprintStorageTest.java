@@ -66,20 +66,16 @@ public class RedisFingerprintStorageTest {
     }
 
     private void setConfiguration() throws IOException {
-        GlobalFingerprintConfiguration.get().setFingerprintStorage(RedisFingerprintStorage.get());
         String host = redis.getHost();
         Integer port = redis.getFirstMappedPort();
-        JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
-        jedisPoolManager.createJedisPool(host, port, 2000, 2000, "default", "", 0, false);
+        RedisConfiguration.setConfiguration(host, port, 2000, 2000, "default", "", 0, false);
     }
 
     /**
      * Sets incorrect Jedis Configuration for testing failures.
      */
     private void setIncorrectConfiguration() {
-        GlobalFingerprintConfiguration.get().setFingerprintStorage(RedisFingerprintStorage.get());
-        JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
-        jedisPoolManager.createJedisPool("", 0, 2000, 2000, "default", "", 0, false);
+        RedisConfiguration.setConfiguration("", 0, 2000, 2000, "default", "", 0, false);
     }
 
     @After
