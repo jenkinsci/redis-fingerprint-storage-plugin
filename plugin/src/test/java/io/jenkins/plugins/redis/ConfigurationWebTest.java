@@ -42,7 +42,7 @@ import java.io.IOException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
-public class GlobalRedisConfigurationTest {
+public class ConfigurationWebTest {
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
