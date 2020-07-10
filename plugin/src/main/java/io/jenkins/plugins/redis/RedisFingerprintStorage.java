@@ -57,7 +57,7 @@ import redis.clients.jedis.exceptions.JedisException;
  */
 
 @Extension
-@Symbol("redis")
+@Symbol("redisFingerprintStorage")
 public class RedisFingerprintStorage extends FingerprintStorage {
 
     private final String instanceId;

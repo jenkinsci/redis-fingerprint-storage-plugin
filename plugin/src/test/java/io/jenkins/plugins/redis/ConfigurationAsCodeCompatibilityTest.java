@@ -40,12 +40,14 @@ public class ConfigurationAsCodeCompatibilityTest {
     @Test
     @ConfiguredWithCode("casc.yml")
     public void shouldSupportConfigurationAsCode() {
-        assertThat(RedisFingerprintStorage.get().getHost(), is("test"));
-        assertThat(RedisFingerprintStorage.get().getPort(), is(3333));
-        assertThat(RedisFingerprintStorage.get().getSsl(), is(true));
-        assertThat(RedisFingerprintStorage.get().getDatabase(), is(3));
-        assertThat(RedisFingerprintStorage.get().getConnectionTimeout(), is(3));
-        assertThat(RedisFingerprintStorage.get().getSocketTimeout(), is(3));
+        RedisFingerprintStorage redisFingerprintStorage = (RedisFingerprintStorage) GlobalFingerprintConfiguration.get()
+                .getFingerprintStorage();
+        assertThat(redisFingerprintStorage.getHost(), is("test"));
+        assertThat(redisFingerprintStorage.getPort(), is(3333));
+        assertThat(redisFingerprintStorage.getSsl(), is(true));
+        assertThat(redisFingerprintStorage.getDatabase(), is(3));
+        assertThat(redisFingerprintStorage.getConnectionTimeout(), is(3));
+        assertThat(redisFingerprintStorage.getSocketTimeout(), is(3));
     }
 
 }
