@@ -46,6 +46,14 @@ import java.util.Collections;
 
 public class RedisFingerprintStorageDescriptor extends FingerprintStorageDescriptor {
 
+    public static final String DEFAULT_HOST = "localhost";
+    public static final int DEFAULT_PORT = 6379;
+    public static final int DEFAULT_DATABASE = 0;
+    public static final boolean DEFAULT_SSL = false;
+    public static final int DEFAULT_CONNECTION_TIMEOUT = 2000;
+    public static final int DEFAULT_SOCKET_TIMEOUT = 2000;
+    public static final String DEFAULT_CREDENTIALS_ID = "";
+
     @Override
     public String getDisplayName() {
         return "Redis Fingerprint Storage";

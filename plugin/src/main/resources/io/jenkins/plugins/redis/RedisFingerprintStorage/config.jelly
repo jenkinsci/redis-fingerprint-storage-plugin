@@ -23,26 +23,26 @@ THE SOFTWARE.
 -->
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
-    <f:entry title="Host">
-        <f:textbox field="host"/>
+    <f:entry title="Host" field="host">
+        <f:textbox default="${descriptor.DEFAULT_HOST}"/>
     </f:entry>
-    <f:entry title="Port">
-        <f:number field="port"/>
+    <f:entry title="Port" field="port">
+        <f:number default="${descriptor.DEFAULT_PORT}"/>
     </f:entry>
-    <f:entry title="SSL">
-        <f:checkbox field="ssl"/>
+    <f:entry title="SSL" field="ssl">
+        <f:checkbox default="${descriptor.DEFAULT_SSL}"/>
     </f:entry>
-    <f:entry title="Database">
-        <f:number field="database"/>
+    <f:entry title="Database" field="database">
+        <f:number default="${descriptor.DEFAULT_DATABASE}"/>
     </f:entry>
-    <f:entry title="Connection Timeout (ms)">
-        <f:number field="connectionTimeout"/>
+    <f:entry title="Connection Timeout (ms)" field="connectionTimeout">
+        <f:number default="${descriptor.DEFAULT_CONNECTION_TIMEOUT}"/>
     </f:entry>
-    <f:entry title="Socket Timeout (ms)">
-        <f:number field="socketTimeout"/>
+    <f:entry title="Socket Timeout (ms)" field="socketTimeout">
+        <f:number default="${descriptor.DEFAULT_SOCKET_TIMEOUT}"/>
     </f:entry>
     <f:entry field="credentialsId" title="${%Credentials}">
-        <c:select/>
+        <c:select default="${descriptor.DEFAULT_CREDENTIALS_ID}"/>
     </f:entry>
     <f:validateButton
             title="${%Test Redis Connection}" progress="${%Testing...}"

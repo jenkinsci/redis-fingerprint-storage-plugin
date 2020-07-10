@@ -148,13 +148,13 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         }
     }
 
-    private String host = "localhost";
-    private int port = 6379;
-    private int database = 0;
-    private boolean ssl;
-    private int connectionTimeout = 2000;
-    private int socketTimeout = 2000;
-    private String credentialsId = "";
+    private String host = RedisFingerprintStorageDescriptor.DEFAULT_HOST;
+    private int port = RedisFingerprintStorageDescriptor.DEFAULT_PORT;
+    private int database = RedisFingerprintStorageDescriptor.DEFAULT_DATABASE;
+    private boolean ssl = RedisFingerprintStorageDescriptor.DEFAULT_SSL;
+    private int connectionTimeout = RedisFingerprintStorageDescriptor.DEFAULT_CONNECTION_TIMEOUT;
+    private int socketTimeout = RedisFingerprintStorageDescriptor.DEFAULT_SOCKET_TIMEOUT;
+    private String credentialsId = RedisFingerprintStorageDescriptor.DEFAULT_CREDENTIALS_ID;
 
     public String getHost() {
         return host;
