@@ -134,7 +134,7 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
     }
 
     public @NonNull String getUsername() {
-        StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
+        StandardUsernamePasswordCredentials credential = getCredential(getCredentialsId());
         return getUsernameFromCredential(credential);
     }
 
