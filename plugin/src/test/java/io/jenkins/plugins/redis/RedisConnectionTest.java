@@ -28,6 +28,7 @@ import hudson.Util;
 import hudson.model.Fingerprint;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.ToxiproxyContainer;
@@ -46,6 +47,9 @@ public class RedisConnectionTest {
 
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
+
+    @Rule
+    public ExpectedException exceptionRule = ExpectedException.none();
 
     @Rule
     public Network network = Network.newNetwork();
@@ -85,8 +89,11 @@ public class RedisConnectionTest {
         fail("Expected JedisException");
     }
 
-    @Test(expected=JedisException.class)
+    @Test
     public void testRedisConnectionFailureForLoad() throws IOException {
+        exceptionRule.expect(JedisException.class);
+        exceptionRule.expectMessage("Read timed out");
+
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
         setRedisConfigurationViaProxy(proxy);
 
@@ -135,8 +142,11 @@ public class RedisConnectionTest {
         fail("Expected JedisException");
     }
 
-    @Test(expected=JedisException.class)
+    @Test
     public void testSlowRedisConnectionForSave() throws IOException {
+        exceptionRule.expect(JedisException.class);
+        exceptionRule.expectMessage("Could not get a resource from the pool");
+
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
         proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
         setRedisConfigurationViaProxy(proxy);
@@ -145,8 +155,11 @@ public class RedisConnectionTest {
         new Fingerprint(null, "foo.jar", Util.fromHexString(id));
     }
 
-    @Test(expected=JedisException.class)
+    @Test
     public void testSlowRedisConnectionForLoad() throws IOException {
+        exceptionRule.expect(JedisException.class);
+        exceptionRule.expectMessage("Could not get a resource from the pool");
+
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
         proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
         setRedisConfigurationViaProxy(proxy);
@@ -155,8 +168,11 @@ public class RedisConnectionTest {
         Fingerprint.load(id);
     }
 
-    @Test(expected=JedisException.class)
+    @Test
     public void testSlowRedisConnectionForDelete() throws IOException {
+        exceptionRule.expect(JedisException.class);
+        exceptionRule.expectMessage("Could not get a resource from the pool");
+
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
         proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
         setRedisConfigurationViaProxy(proxy);
@@ -165,8 +181,11 @@ public class RedisConnectionTest {
         Fingerprint.delete(id);
     }
 
-    @Test(expected=JedisException.class)
+    @Test
     public void testSlowRedisConnectionForIsReady() throws IOException {
+        exceptionRule.expect(JedisException.class);
+        exceptionRule.expectMessage("Could not get a resource from the pool");
+
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
         proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
         setRedisConfigurationViaProxy(proxy);
