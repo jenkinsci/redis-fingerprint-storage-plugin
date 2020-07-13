@@ -78,12 +78,6 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Saves the given fingerprint.
      */
     public synchronized void save(Fingerprint fp) throws JedisException {
-//        XStream xstream = new XStream(new JettisonMappedXmlDriver());
-//        xstream.setMode(XStream.NO_REFERENCES);
-//        xstream.alias("fingerprint", Fingerprint.class);
-//
-//        System.out.println(xstream.toXML(fp));
-
         StringWriter writer = new StringWriter();
         Fingerprint.getXStream().toXML(fp, writer);
         JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
