@@ -24,8 +24,6 @@
 package io.jenkins.plugins.redis;
 
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
