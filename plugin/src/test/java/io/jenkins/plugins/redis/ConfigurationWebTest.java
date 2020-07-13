@@ -23,13 +23,11 @@
  */
 package io.jenkins.plugins.redis;
 
-import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import hudson.model.User;
 import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.util.FormValidation;
-import jenkins.fingerprints.GlobalFingerprintConfiguration;
 import jenkins.model.Jenkins;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +37,6 @@ import org.testcontainers.containers.GenericContainer;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.Iterator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -53,96 +50,119 @@ public class ConfigurationWebTest {
     public GenericContainer redis = new GenericContainer<>("redis:6.0.4-alpine").withExposedPorts(6379);
 
     @Test
-    public void submitAndReloadConfigurationPageTest() throws Exception {
+    public void changingRedisConfigAndRefreshWebUITest() throws Exception {
+
+        final String initialHost = "initialHost";
+        final Integer initialPort = 1000;
+        final Integer initialConnectionTimeout = 1000;
+        final Integer initialSocketTimeout = 1000;
+        final Integer initialDatabase = 1;
+        final boolean initialSsl = false;
+
+        final String finalHost = "finalHost";
+        final Integer finalPort = 3000;
+        final Integer finalConnectionTimeout = 3000;
+        final Integer finalSocketTimeout = 3000;
+        final Integer finalDatabase = 3;
+        final Boolean finalSsl = true;
+
+        RedisConfiguration.setConfiguration(initialHost, initialPort, initialConnectionTimeout, initialSocketTimeout,
+                "", initialDatabase, initialSsl);
+
         JenkinsRule.WebClient web = j.createWebClient();
         HtmlForm form = web.goTo("configure").getFormByName("config");
 
         assertThat(form.getInputsByName("_.host").size(), is(1));
-        form.getInputsByName("_.host").get(0).setValueAttribute("local");
+        form.getInputsByName("_.host").get(0).setValueAttribute(finalHost);
         assertThat(form.getInputsByName("_.port").size(), is(1));
-        form.getInputsByName("_.port").get(0).setValueAttribute("3333");
+        form.getInputsByName("_.port").get(0).setValueAttribute(finalPort.toString());
         assertThat(form.getInputsByName("_.ssl").size(), is(1));
-        form.getInputsByName("_.ssl").get(0).setChecked(false);
+        form.getInputsByName("_.ssl").get(0).setChecked(finalSsl);
         assertThat(form.getInputsByName("_.database").size(), is(1));
-        form.getInputsByName("_.database").get(0).setValueAttribute("3");
+        form.getInputsByName("_.database").get(0).setValueAttribute(finalDatabase.toString());
         assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
-        form.getInputsByName("_.connectionTimeout").get(0).setValueAttribute("3");
+        form.getInputsByName("_.connectionTimeout").get(0).setValueAttribute(finalConnectionTimeout.toString());
         assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
-        form.getInputsByName("_.socketTimeout").get(0).setValueAttribute("3");
+        form.getInputsByName("_.socketTimeout").get(0).setValueAttribute(finalSocketTimeout.toString());
 
         j.submit(form);
 
         form = web.goTo("configure").getFormByName("config");
 
         assertThat(form.getInputsByName("_.host").size(), is(1));
-        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is("local"));
+        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is(finalHost));
         assertThat(form.getInputsByName("_.port").size(), is(1));
-        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is("3333"));
+        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is(finalPort.toString()));
         assertThat(form.getInputsByName("_.ssl").size(), is(1));
-        assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(""));
+        assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(finalSsl.toString()));
         assertThat(form.getInputsByName("_.database").size(), is(1));
-        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is(finalDatabase.toString()));
         assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(),
+                is(finalConnectionTimeout.toString()));
         assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(),
+                is(finalSocketTimeout.toString()));
 
         web.goTo("configure").refresh();
 
         form = web.goTo("configure").getFormByName("config");
 
         assertThat(form.getInputsByName("_.host").size(), is(1));
-        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is("local"));
+        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is(finalHost));
         assertThat(form.getInputsByName("_.port").size(), is(1));
-        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is("3333"));
+        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is(finalPort.toString()));
         assertThat(form.getInputsByName("_.ssl").size(), is(1));
-        assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(""));
+        assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(finalSsl.toString()));
         assertThat(form.getInputsByName("_.database").size(), is(1));
-        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is(finalDatabase.toString()));
         assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(),
+                is(finalConnectionTimeout.toString()));
         assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(),
+                is(finalSocketTimeout.toString()));
     }
 
-
     @Test
-    public void changesToRedisConfigCauseChangesOnWebUI() throws Exception {
-        RedisConfiguration.setConfiguration("host", 3333, 3, 3, "default", "", 3, false);
+    public void fileStorageToRedisStorageWebUITest() throws Exception {
+        final String host = redis.getHost();
+        final Integer port = redis.getFirstMappedPort();
+        final Integer connectionTimeout = 3000;
+        final Integer socketTimeout = 3000;
+        final String credentialsId = "";
+        final Integer database = 3;
+        final boolean ssl = false;
 
         JenkinsRule.WebClient web = j.createWebClient();
         HtmlForm form = web.goTo("configure").getFormByName("config");
-        j.submit(form);
 
-        RedisFingerprintStorage redisFingerprintStorage = (RedisFingerprintStorage) GlobalFingerprintConfiguration.get()
-                .getFingerprintStorage();
+        assertThat(form.getInputsByName("_.host").size(), is(0));
+        assertThat(form.getInputsByName("_.port").size(), is(0));
+        assertThat(form.getInputsByName("_.ssl").size(), is(0));
+        assertThat(form.getInputsByName("_.database").size(), is(0));
+        assertThat(form.getInputsByName("_.connectionTimeout").size(), is(0));
+        assertThat(form.getInputsByName("_.socketTimeout").size(), is(0));
+        assertThat(form.getInputsByName("_.credentialsId").size(), is(0));
+
+        RedisConfiguration.setConfiguration(host, port, connectionTimeout, socketTimeout, credentialsId, database, ssl);
+
+        form = web.goTo("configure").getFormByName("config");
 
         assertThat(form.getInputsByName("_.host").size(), is(1));
-        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is("host"));
+        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is(host));
         assertThat(form.getInputsByName("_.port").size(), is(1));
-        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is("3333"));
+        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is(port.toString()));
         assertThat(form.getInputsByName("_.ssl").size(), is(1));
         assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(""));
         assertThat(form.getInputsByName("_.database").size(), is(1));
-        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is(database.toString()));
         assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(), is("3"));
+        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(), is(
+                connectionTimeout.toString()));
         assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is("3"));
-
-//        redisFingerprintStorage.setSocketTimeout(3000);
-//        redisFingerprintStorage.setConnectionTimeout(3000);
-//        redisFingerprintStorage.setCredentialsId("dummy");
-//        redisFingerprintStorage.setDatabase(0);
-//        redisFingerprintStorage.setHost("dummy");
-//        redisFingerprintStorage.setPort(3333);
-//        redisFingerprintStorage.setSsl(true);
-//
-//        GlobalFingerprintConfiguration.get().save();
-//        GlobalFingerprintConfiguration.get().load();
-//
-//        form = web.goTo("configure").getFormByName("config");
-//        j.submit(form);
+        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is(socketTimeout.toString()));
+        assertThat(form.getSelectByName("_.credentialsId").getSelectedIndex(), is(0));
     }
 
     @Test

@@ -29,7 +29,6 @@ import hudson.model.Fingerprint;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import jenkins.fingerprints.FingerprintStorage;
-import jenkins.fingerprints.GlobalFingerprintConfiguration;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.junit.After;
 import org.junit.Before;
@@ -65,17 +64,17 @@ public class RedisFingerprintStorageTest {
         jedis = new Jedis(host, port);
     }
 
-    private void setConfiguration() throws IOException {
+    private void setConfiguration() {
         String host = redis.getHost();
         Integer port = redis.getFirstMappedPort();
-        RedisConfiguration.setConfiguration(host, port, 2000, 2000, "default", "", 0, false);
+        RedisConfiguration.setConfiguration(host, port);
     }
 
     /**
      * Sets incorrect Jedis Configuration for testing failures.
      */
     private void setIncorrectConfiguration() {
-        RedisConfiguration.setConfiguration("", 0, 2000, 2000, "default", "", 0, false);
+        RedisConfiguration.setConfiguration("", 0);
     }
 
     @After

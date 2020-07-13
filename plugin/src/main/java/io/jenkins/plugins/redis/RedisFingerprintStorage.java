@@ -24,6 +24,8 @@
 package io.jenkins.plugins.redis;
 
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -76,10 +78,16 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Saves the given fingerprint.
      */
     public synchronized void save(Fingerprint fp) throws JedisException {
+//        XStream xstream = new XStream(new JettisonMappedXmlDriver());
+//        xstream.setMode(XStream.NO_REFERENCES);
+//        xstream.alias("fingerprint", Fingerprint.class);
+//
+//        System.out.println(xstream.toXML(fp));
+
         StringWriter writer = new StringWriter();
         Fingerprint.getXStream().toXML(fp, writer);
         JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
-        try (Jedis jedis = jedisPoolManager.getJedis()) {
+        try (Jedis jedis = jedisPoolManager.getJedis(this)) {
             Transaction transaction = jedis.multi();
             transaction.set(instanceId + fp.getHashString(), writer.toString());
             transaction.sadd(instanceId, fp.getHashString());
@@ -97,7 +105,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         String loadedData;
         JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
 
-        try (Jedis jedis = jedisPoolManager.getJedis()) {
+        try (Jedis jedis = jedisPoolManager.getJedis(this)) {
             loadedData = jedis.get(instanceId + id);
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in loading fingerprint: " + id, e);
@@ -126,7 +134,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      */
     public void delete(@NonNull String id) throws JedisException {
         JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
-        try (Jedis jedis = jedisPoolManager.getJedis()) {
+        try (Jedis jedis = jedisPoolManager.getJedis(this)) {
             Transaction transaction = jedis.multi();
             transaction.del(instanceId + id);
             transaction.srem(instanceId, id);
@@ -142,7 +150,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      */
     public boolean isReady() {
         JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
-        try (Jedis jedis = jedisPoolManager.getJedis()) {
+        try (Jedis jedis = jedisPoolManager.getJedis(this)) {
             return jedis.smembers(instanceId).size() != 0;
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
@@ -165,6 +173,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     @DataBoundSetter
     public void setHost(String host) {
         this.host = host;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
     }
 
     public int getPort() {
@@ -174,6 +183,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     @DataBoundSetter
     public void setPort(int port) {
         this.port = port;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
     }
 
     public int getDatabase() {
@@ -183,6 +193,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     @DataBoundSetter
     public void setDatabase(int database) {
         this.database = database;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
     }
 
     public boolean getSsl() {
@@ -192,6 +203,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     @DataBoundSetter
     public void setSsl(boolean ssl) {
         this.ssl = ssl;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
     }
 
     public int getConnectionTimeout() {
@@ -201,6 +213,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     @DataBoundSetter
     public void setConnectionTimeout(int connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
     }
 
     public int getSocketTimeout() {
@@ -210,6 +223,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     @DataBoundSetter
     public void setSocketTimeout(int socketTimeout) {
         this.socketTimeout = socketTimeout;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
     }
 
     public String getCredentialsId() {
@@ -219,6 +233,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     @DataBoundSetter
     public void setCredentialsId(String credentialsId) {
         this.credentialsId = credentialsId;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
     }
 
     public @NonNull String getUsername() {

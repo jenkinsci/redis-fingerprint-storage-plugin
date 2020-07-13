@@ -24,41 +24,42 @@
 package io.jenkins.plugins.redis;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import jenkins.fingerprints.GlobalFingerprintConfiguration;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.exceptions.JedisException;
 
+/**
+ * Singleton Responsible for managing {@link JedisPool}. Creates the connection with Redis and manages resources.
+ */
 public enum JedisPoolManager {
 
     INSTANCE;
 
-    JedisPoolManager() {
-        createJedisPoolFromConfig();
-    }
-
     private volatile JedisPool jedisPool;
 
-    void createJedisPoolFromConfig() {
-        RedisFingerprintStorage redisFingerprintStorage = (RedisFingerprintStorage) GlobalFingerprintConfiguration.get()
-                .getFingerprintStorage();
-
+    void createJedisPoolFromConfig(RedisFingerprintStorage redisFingerprintStorage) {
         createJedisPool(redisFingerprintStorage.getHost(), redisFingerprintStorage.getPort(),
                 redisFingerprintStorage.getConnectionTimeout(), redisFingerprintStorage.getSocketTimeout(),
                 redisFingerprintStorage.getUsername(), redisFingerprintStorage.getPassword(),
                 redisFingerprintStorage.getDatabase(), redisFingerprintStorage.getSsl());
     }
 
-    synchronized void createJedisPool(
+    private synchronized void createJedisPool(
             String host, int port, int connectionTimeout, int socketTimeout, String username, String password,
             int database, boolean ssl) {
 
+        if (jedisPool != null) {
+            jedisPool.close();
+        }
         jedisPool = new JedisPool(new JedisPoolConfig(), host, port, connectionTimeout, socketTimeout, username,
                 password, database, "Jenkins", ssl);
     }
 
-    @NonNull Jedis getJedis() throws JedisException {
+    @NonNull Jedis getJedis(RedisFingerprintStorage redisFingerprintStorage) throws JedisException {
+        if (jedisPool == null) {
+            createJedisPoolFromConfig(redisFingerprintStorage);
+        }
         return jedisPool.getResource();
     }
 
