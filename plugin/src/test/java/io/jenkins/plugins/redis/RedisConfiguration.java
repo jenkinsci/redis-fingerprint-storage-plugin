@@ -28,11 +28,20 @@ import jenkins.fingerprints.GlobalFingerprintConfiguration;
 public class RedisConfiguration {
 
     public static void setConfiguration(String host, int port, int connectionTimeout, int socketTimeout,
-                                        String username, String password, int database, boolean ssl) {
-        GlobalFingerprintConfiguration.get().setFingerprintStorage(RedisFingerprintStorage.get());
-        JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
-        jedisPoolManager.createJedisPool(host, port, connectionTimeout, socketTimeout, username, password, database,
-                ssl);
+                                        String credentialsId, int database, boolean ssl) {
+        RedisFingerprintStorage redisFingerprintStorage = RedisFingerprintStorage.get();
+        redisFingerprintStorage.setHost(host);
+        redisFingerprintStorage.setPort(port);
+        redisFingerprintStorage.setConnectionTimeout(connectionTimeout);
+        redisFingerprintStorage.setSocketTimeout(socketTimeout);
+        redisFingerprintStorage.setCredentialsId(credentialsId);
+        redisFingerprintStorage.setDatabase(database);
+        redisFingerprintStorage.setSsl(ssl);
+        GlobalFingerprintConfiguration.get().setFingerprintStorage(redisFingerprintStorage);
+    }
+
+    public static void setConfiguration(String host, int port) {
+        setConfiguration(host, port, 3000, 3000, "", 0, false);
     }
 
 }
