@@ -42,8 +42,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.CoreMatchers.containsString;
 
 public class RedisConnectionTest {
+
+    private static final String READ_TIMEOUT = "Read timed out";
+    private static final String NO_RESOURCE_FROM_POOL = "Could not get a resource from the pool";
 
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
@@ -81,6 +85,8 @@ public class RedisConnectionTest {
         try {
             new Fingerprint(null, "foo.jar", Util.fromHexString(id));
         } catch (JedisException e) {
+            assertThat(e.getMessage(), containsString(NO_RESOURCE_FROM_POOL));
+
             proxy.setConnectionCut(false);
             Fingerprint fingerprintLoaded = Fingerprint.load(id);
             assertThat(fingerprintLoaded, is(nullValue()));
@@ -92,7 +98,7 @@ public class RedisConnectionTest {
     @Test
     public void testRedisConnectionFailureForLoad() throws IOException {
         exceptionRule.expect(JedisException.class);
-        exceptionRule.expectMessage("Read timed out");
+        exceptionRule.expectMessage(READ_TIMEOUT);
 
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
         setRedisConfigurationViaProxy(proxy);
@@ -117,6 +123,8 @@ public class RedisConnectionTest {
         try {
             Fingerprint.delete(id);
         } catch (JedisException e) {
+            assertThat(e.getMessage(), containsString(READ_TIMEOUT));
+
             proxy.setConnectionCut(false);
             Fingerprint fingerprintLoaded = Fingerprint.load(id);
             assertThat(fingerprintLoaded, is(not(nullValue())));
@@ -135,6 +143,8 @@ public class RedisConnectionTest {
         try {
             RedisFingerprintStorage.get().isReady();
         } catch (JedisException e) {
+            assertThat(e.getMessage(), containsString(NO_RESOURCE_FROM_POOL));
+
             proxy.setConnectionCut(false);
             assertThat(RedisFingerprintStorage.get().isReady(), is(false));
             return;
@@ -145,7 +155,7 @@ public class RedisConnectionTest {
     @Test
     public void testSlowRedisConnectionForSave() throws IOException {
         exceptionRule.expect(JedisException.class);
-        exceptionRule.expectMessage("Could not get a resource from the pool");
+        exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
 
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
         proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
@@ -158,7 +168,7 @@ public class RedisConnectionTest {
     @Test
     public void testSlowRedisConnectionForLoad() throws IOException {
         exceptionRule.expect(JedisException.class);
-        exceptionRule.expectMessage("Could not get a resource from the pool");
+        exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
 
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
         proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
@@ -171,7 +181,7 @@ public class RedisConnectionTest {
     @Test
     public void testSlowRedisConnectionForDelete() throws IOException {
         exceptionRule.expect(JedisException.class);
-        exceptionRule.expectMessage("Could not get a resource from the pool");
+        exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
 
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
         proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
@@ -184,7 +194,7 @@ public class RedisConnectionTest {
     @Test
     public void testSlowRedisConnectionForIsReady() throws IOException {
         exceptionRule.expect(JedisException.class);
-        exceptionRule.expectMessage("Could not get a resource from the pool");
+        exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
 
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
         proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
