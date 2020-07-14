@@ -23,9 +23,10 @@
  */
 package io.jenkins.plugins.redis;
 
+import com.cloudbees.plugins.credentials.CredentialsMatcher;
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.security.ACL;
@@ -57,17 +58,11 @@ public class CredentialHelper {
         return credential.getPassword().getPlainText();
     }
 
-    static StandardUsernamePasswordCredentials getCredential(String id) {
-        StandardUsernamePasswordCredentials credential = null;
+    static @CheckForNull StandardUsernamePasswordCredentials getCredential(String id) {
         List<StandardUsernamePasswordCredentials> credentials = CredentialsProvider.lookupCredentials(
                 StandardUsernamePasswordCredentials.class, Jenkins.get(), ACL.SYSTEM, Collections.emptyList());
-        IdMatcher matcher = new IdMatcher(id);
-        for (StandardUsernamePasswordCredentials c : credentials) {
-            if (matcher.matches(c)) {
-                credential = c;
-            }
-        }
-        return credential;
+        CredentialsMatcher matcher = CredentialsMatchers.withId(id);
+        return CredentialsMatchers.firstOrNull(credentials, matcher);
     }
 
 }
