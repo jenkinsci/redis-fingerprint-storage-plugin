@@ -22,7 +22,7 @@
 
 unclassified:
   fingerprints:
-    fingerprintStorage:
+    storage:
       redis:
         host: "test"
         port: 3333

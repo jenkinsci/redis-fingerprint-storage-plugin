@@ -37,7 +37,7 @@ public class RedisConfiguration {
         redisFingerprintStorage.setCredentialsId(credentialsId);
         redisFingerprintStorage.setDatabase(database);
         redisFingerprintStorage.setSsl(ssl);
-        GlobalFingerprintConfiguration.get().setFingerprintStorage(redisFingerprintStorage);
+        GlobalFingerprintConfiguration.get().setStorage(redisFingerprintStorage);
     }
 
     public static void setConfiguration(String host, int port) {
