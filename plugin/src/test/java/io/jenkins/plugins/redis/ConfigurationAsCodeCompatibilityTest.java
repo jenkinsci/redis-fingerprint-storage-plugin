@@ -41,7 +41,7 @@ public class ConfigurationAsCodeCompatibilityTest {
     @ConfiguredWithCode("casc.yml")
     public void shouldSupportConfigurationAsCode() {
         RedisFingerprintStorage redisFingerprintStorage = (RedisFingerprintStorage) GlobalFingerprintConfiguration.get()
-                .getFingerprintStorage();
+                .getStorage();
         assertThat(redisFingerprintStorage.getHost(), is("test"));
         assertThat(redisFingerprintStorage.getPort(), is(3333));
         assertThat(redisFingerprintStorage.getSsl(), is(true));
