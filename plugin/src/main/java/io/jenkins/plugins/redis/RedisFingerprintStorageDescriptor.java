@@ -34,6 +34,8 @@ import hudson.util.ListBoxModel;
 import jenkins.fingerprints.FingerprintStorageDescriptor;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -60,6 +62,7 @@ public class RedisFingerprintStorageDescriptor extends FingerprintStorageDescrip
     }
 
     @RequirePOST
+    @Restricted(NoExternalUse.class)
     public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
         StandardListBoxModel result = new StandardListBoxModel();
         if (item == null) {
@@ -83,6 +86,7 @@ public class RedisFingerprintStorageDescriptor extends FingerprintStorageDescrip
                 .includeCurrentValue(credentialsId);
     }
 
+    @Restricted(NoExternalUse.class)
     public FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
         if (item == null) {
             if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
@@ -109,6 +113,7 @@ public class RedisFingerprintStorageDescriptor extends FingerprintStorageDescrip
     }
 
     @RequirePOST
+    @Restricted(NoExternalUse.class)
     public FormValidation doTestRedisConnection(
             @QueryParameter("host") final String host,
             @QueryParameter("port") final int port,
