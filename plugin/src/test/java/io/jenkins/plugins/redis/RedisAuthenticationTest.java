@@ -36,13 +36,17 @@ import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.testcontainers.containers.GenericContainer;
 import redis.clients.jedis.exceptions.JedisAccessControlException;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
+import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 
 public class RedisAuthenticationTest {
+
+    private static final String NO_RESOURCE_FROM_POOL = "Could not get a resource from the pool";
 
     @Rule
     public GenericContainer redis = new GenericContainer<>("redis:6.0.4-alpine")
@@ -56,14 +60,47 @@ public class RedisAuthenticationTest {
     public ExpectedException exceptionRule = ExpectedException.none();
 
     @Test
-    public void testWithoutPasswordWhenPasswordIsConfigured() throws Exception {
-        exceptionRule.expect(JedisAccessControlException.class);
-        exceptionRule.expectMessage("WRONGPASS invalid username-password pair");
+    public void testSaveWithoutPasswordWhenPasswordIsConfigured() throws Exception {
+        exceptionRule.expect(JedisConnectionException.class);
+        exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
+        exceptionRule.expectCause(isA(JedisAccessControlException.class));
 
         RedisConfiguration.setConfiguration(redis.getHost(), redis.getFirstMappedPort());
-        String id = Util.getDigestOf("testWithIncorrectPasswordWhenPasswordIsConfigured");
+        String id = Util.getDigestOf("testSaveWithoutPasswordWhenPasswordIsConfigured");
         new Fingerprint(null, "foo.jar", Util.fromHexString(id));
-        assertThat(Fingerprint.load(id), is(not(nullValue())));
+    }
+
+    @Test
+    public void testLoadWithoutPasswordWhenPasswordIsConfigured() throws Exception {
+        exceptionRule.expect(JedisConnectionException.class);
+        exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
+        exceptionRule.expectCause(isA(JedisAccessControlException.class));
+
+        RedisConfiguration.setConfiguration(redis.getHost(), redis.getFirstMappedPort());
+        String id = Util.getDigestOf("testLoadWithoutPasswordWhenPasswordIsConfigured");
+        Fingerprint.load(id);
+    }
+
+    @Test
+    public void testDeleteWithoutPasswordWhenPasswordIsConfigured() throws Exception {
+        exceptionRule.expect(JedisConnectionException.class);
+        exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
+        exceptionRule.expectCause(isA(JedisAccessControlException.class));
+
+        RedisConfiguration.setConfiguration(redis.getHost(), redis.getFirstMappedPort());
+        String id = Util.getDigestOf("testDeleteWithoutPasswordWhenPasswordIsConfigured");
+        Fingerprint.delete(id);
+    }
+
+    @Test
+    public void testIsReadyWithoutPasswordWhenPasswordIsConfigured() throws Exception {
+        exceptionRule.expect(JedisConnectionException.class);
+        exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
+        exceptionRule.expectCause(isA(JedisAccessControlException.class));
+
+        RedisConfiguration.setConfiguration(redis.getHost(), redis.getFirstMappedPort());
+        String id = Util.getDigestOf("testIsReadyWithoutPasswordWhenPasswordIsConfigured");
+        Fingerprint.delete(id);
     }
 
     @Test
