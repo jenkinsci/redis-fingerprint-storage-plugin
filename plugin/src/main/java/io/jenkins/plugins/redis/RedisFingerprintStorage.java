@@ -41,7 +41,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-import org.jenkinsci.Symbol;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -57,7 +56,6 @@ import redis.clients.jedis.exceptions.JedisException;
  */
 
 @Extension
-@Symbol("redis")
 public class RedisFingerprintStorage extends FingerprintStorage {
 
     private final String instanceId;
