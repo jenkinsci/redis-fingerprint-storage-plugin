@@ -44,4 +44,8 @@ public class RedisConfiguration {
         setConfiguration(host, port, 3000, 3000, "", 0, false);
     }
 
+    public static void setConfiguration(String host, int port, String credentialsId) {
+        setConfiguration(host, port, 3000, 3000, credentialsId, 0, false);
+    }
+
 }

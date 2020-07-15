@@ -32,8 +32,10 @@ import hudson.Util;
 import hudson.model.Fingerprint;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.testcontainers.containers.GenericContainer;
+import redis.clients.jedis.exceptions.JedisAccessControlException;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -50,8 +52,15 @@ public class RedisAuthenticationTest {
     @Rule
     public JenkinsRule j = new JenkinsRule();
 
+    @Rule
+    public ExpectedException exceptionRule = ExpectedException.none();
+
     @Test
     public void testWithoutPasswordWhenPasswordIsConfigured() throws Exception {
+        exceptionRule.expect(JedisAccessControlException.class);
+        exceptionRule.expectMessage("WRONGPASS invalid username-password pair");
+
+        RedisConfiguration.setConfiguration(redis.getHost(), redis.getFirstMappedPort());
         String id = Util.getDigestOf("testWithIncorrectPasswordWhenPasswordIsConfigured");
         new Fingerprint(null, "foo.jar", Util.fromHexString(id));
         assertThat(Fingerprint.load(id), is(not(nullValue())));
