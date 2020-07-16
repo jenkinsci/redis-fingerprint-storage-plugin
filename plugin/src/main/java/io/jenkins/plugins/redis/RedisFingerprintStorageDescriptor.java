@@ -58,7 +58,7 @@ public class RedisFingerprintStorageDescriptor extends FingerprintStorageDescrip
 
     @Override
     public String getDisplayName() {
-        return "Redis Fingerprint Storage";
+        return Messages.RedisFingerprintStorage_DisplayName();
     }
 
     @RequirePOST
