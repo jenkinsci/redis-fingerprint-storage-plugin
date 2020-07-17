@@ -1,0 +1,55 @@
+<!--
+The MIT License
+
+Copyright (c) 2020, Sumit Sarin and Jenkins project contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+    <f:entry title="Host" field="host">
+        <f:textbox default="${descriptor.DEFAULT_HOST}"/>
+    </f:entry>
+    <f:entry title="Port" field="port">
+        <f:number default="${descriptor.DEFAULT_PORT}"/>
+    </f:entry>
+    <f:entry title="SSL" field="ssl">
+        <f:checkbox default="${descriptor.DEFAULT_SSL}"/>
+    </f:entry>
+    <f:entry title="Database" field="database">
+        <f:number default="${descriptor.DEFAULT_DATABASE}"/>
+    </f:entry>
+    <f:entry title="Connection Timeout (ms)" field="connectionTimeout">
+        <f:number default="${descriptor.DEFAULT_CONNECTION_TIMEOUT}"/>
+    </f:entry>
+    <f:entry title="Socket Timeout (ms)" field="socketTimeout">
+        <f:number default="${descriptor.DEFAULT_SOCKET_TIMEOUT}"/>
+    </f:entry>
+    <f:entry field="credentialsId" title="${%Credentials}">
+        <c:select default="${descriptor.DEFAULT_CREDENTIALS_ID}"/>
+    </f:entry>
+    <f:validateButton
+            title="${%Test Redis Connection}" progress="${%Testing...}"
+            method="testRedisConnection" with="host,port,database,credentialsId,ssl,connectionTimeout,socketTimeout"
+    />
+    <f:entry title="">
+        CAUTION: It is the responsibility of the admins to ensure the security of the Redis instance as fingerprints
+        may contain sensitive information.
+    </f:entry>
+</j:jelly>

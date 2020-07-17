@@ -27,22 +27,17 @@ import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.matchers.IdMatcher;
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import hudson.Extension;
 import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import jenkins.model.GlobalConfiguration;
+import jenkins.fingerprints.FingerprintStorageDescriptor;
 import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.Symbol;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisException;
@@ -50,146 +45,24 @@ import redis.clients.jedis.exceptions.JedisException;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 
-/**
- * Global configuration for Redis Fingerprint Storage.
- *
- * @author Sumit Sarin
- */
-@Extension
-@Symbol("redis")
-public class GlobalRedisConfiguration extends GlobalConfiguration {
+public class RedisFingerprintStorageDescriptor extends FingerprintStorageDescriptor {
 
-    private String host = "localhost";
-    private int port = 6379;
-    private int database = 0;
-    private boolean ssl;
-    private int connectionTimeout = 2000;
-    private int socketTimeout = 2000;
-    private String credentialsId = "";
-
-    public GlobalRedisConfiguration() {
-        load();
-    }
-
-    public static GlobalRedisConfiguration get() {
-        return GlobalConfiguration.all().getInstance(GlobalRedisConfiguration.class);
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public int getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(int database) {
-        this.database = database;
-    }
-
-    public boolean getSsl() {
-        return this.ssl;
-    }
-
-    public void setSsl(boolean ssl) {
-        this.ssl = ssl;
-    }
-
-    public int getConnectionTimeout() {
-        return connectionTimeout;
-    }
-
-    public void setConnectionTimeout(int connectionTimeout) {
-        this.connectionTimeout = connectionTimeout;
-    }
-
-    public int getSocketTimeout() {
-        return socketTimeout;
-    }
-
-    public void setSocketTimeout(int socketTimeout) {
-        this.socketTimeout = socketTimeout;
-    }
-
-    public String getCredentialsId() {
-        return credentialsId;
-    }
-
-    public void setCredentialsId(String credentialsId) {
-        this.credentialsId = credentialsId;
-    }
-
-    public @NonNull String getUsername() {
-        StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
-        return getUsernameFromCredential(credential);
-    }
-
-    private @NonNull String getUsernameFromCredential(@CheckForNull StandardUsernamePasswordCredentials credential) {
-        if (credential == null) {
-            return "default";
-        }
-        String username = credential.getUsername();
-        if (username.equals("")) {
-            return "default";
-        }
-        return username;
-    }
-
-    public @NonNull String getPassword() {
-        StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
-        return getPasswordFromCredential(credential);
-    }
-
-    private @NonNull String getPasswordFromCredential(@CheckForNull StandardUsernamePasswordCredentials credential) {
-        if (credential == null) {
-            return "";
-        }
-        return credential.getPassword().getPlainText();
-    }
-
-    private StandardUsernamePasswordCredentials getCredential(String id) {
-        StandardUsernamePasswordCredentials credential = null;
-        List<StandardUsernamePasswordCredentials> credentials = CredentialsProvider.lookupCredentials(
-                StandardUsernamePasswordCredentials.class, Jenkins.get(), ACL.SYSTEM, Collections.emptyList());
-        IdMatcher matcher = new IdMatcher(id);
-        for (StandardUsernamePasswordCredentials c : credentials) {
-            if (matcher.matches(c)) {
-                credential = c;
-            }
-        }
-        return credential;
-    }
+    public static final String DEFAULT_HOST = "localhost";
+    public static final int DEFAULT_PORT = 6379;
+    public static final int DEFAULT_DATABASE = 0;
+    public static final boolean DEFAULT_SSL = false;
+    public static final int DEFAULT_CONNECTION_TIMEOUT = 2000;
+    public static final int DEFAULT_SOCKET_TIMEOUT = 2000;
+    public static final String DEFAULT_CREDENTIALS_ID = "";
 
     @Override
-    public boolean configure(StaplerRequest req, JSONObject json) {
-        json = json.getJSONObject("redis");
-        setHost(json.getString("host"));
-        setPort(json.getInt("port"));
-        setDatabase(json.getInt("database"));
-        setSsl(json.getBoolean("ssl"));
-        setCredentialsId(json.getString("credentialsId"));
-        setConnectionTimeout(json.getInt(("connectionTimeout")));
-        setSocketTimeout(json.getInt(("socketTimeout")));
-        save();
-        RedisFingerprintStorage.get().createJedisPoolFromConfig();
-        return true;
+    public String getDisplayName() {
+        return Messages.RedisFingerprintStorage_DisplayName();
     }
 
     @RequirePOST
+    @Restricted(NoExternalUse.class)
     public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
         StandardListBoxModel result = new StandardListBoxModel();
         if (item == null) {
@@ -213,6 +86,7 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
                 .includeCurrentValue(credentialsId);
     }
 
+    @Restricted(NoExternalUse.class)
     public FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
         if (item == null) {
             if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
@@ -239,6 +113,7 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
     }
 
     @RequirePOST
+    @Restricted(NoExternalUse.class)
     public FormValidation doTestRedisConnection(
             @QueryParameter("host") final String host,
             @QueryParameter("port") final int port,
@@ -259,12 +134,12 @@ public class GlobalRedisConfiguration extends GlobalConfiguration {
         }
     }
 
-    private void testConnection (String host, int port, int database, String credentialsId, boolean ssl,
-    int connectionTimeout, int socketTimeout) throws JedisException {
+    protected void testConnection (String host, int port, int database, String credentialsId, boolean ssl,
+                                 int connectionTimeout, int socketTimeout) throws JedisException {
         Jedis jedis = new Jedis(host, port, connectionTimeout, socketTimeout, ssl);
-        StandardUsernamePasswordCredentials credential = getCredential(credentialsId);
-        String username = getUsernameFromCredential(credential);
-        String password = getPasswordFromCredential(credential);
+        StandardUsernamePasswordCredentials credential = CredentialHelper.getCredential(credentialsId);
+        String username = CredentialHelper.getUsernameFromCredential(credential);
+        String password = CredentialHelper.getPasswordFromCredential(credential);
         jedis.auth(username, password);
         jedis.select(database);
         jedis.close();

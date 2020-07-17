@@ -23,6 +23,7 @@
  */
 package io.jenkins.plugins.redis;
 
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -42,9 +43,9 @@ import java.util.logging.Level;
 
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
 
@@ -59,32 +60,14 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
     private final String instanceId;
     private static final Logger LOGGER = Logger.getLogger(Fingerprint.class.getName());
-    private volatile JedisPool jedisPool;
 
     public static RedisFingerprintStorage get() {
-        return ExtensionList.lookup(RedisFingerprintStorage.class).get(0);
+        return ExtensionList.lookupSingleton(RedisFingerprintStorage.class);
     }
 
+    @DataBoundConstructor
     public RedisFingerprintStorage() throws IOException {
         instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
-        createJedisPoolFromConfig();
-    }
-
-    void createJedisPoolFromConfig() {
-        GlobalRedisConfiguration config = GlobalRedisConfiguration.get();
-        createJedisPool(config.getHost(), config.getPort(), config.getConnectionTimeout(), config.getSocketTimeout(),
-                config.getUsername(), config.getPassword(), config.getDatabase(), config.getSsl());
-    }
-
-    void createJedisPool(
-            String host, int port, int connectionTimeout, int socketTimeout, String username, String password,
-            int database, boolean ssl) {
-        jedisPool = new JedisPool(new JedisPoolConfig(), host, port, connectionTimeout, socketTimeout, username,
-                password, database, "Jenkins", ssl);
-    }
-
-    private @NonNull Jedis getJedis() throws JedisException{
-        return jedisPool.getResource();
     }
 
     /**
@@ -93,7 +76,8 @@ public class RedisFingerprintStorage extends FingerprintStorage {
     public synchronized void save(Fingerprint fp) throws JedisException {
         StringWriter writer = new StringWriter();
         Fingerprint.getXStream().toXML(fp, writer);
-        try (Jedis jedis = getJedis()) {
+        JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
+        try (Jedis jedis = jedisPoolManager.getJedis(this)) {
             Transaction transaction = jedis.multi();
             transaction.set(instanceId + fp.getHashString(), writer.toString());
             transaction.sadd(instanceId, fp.getHashString());
@@ -109,8 +93,9 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      */
     public @CheckForNull Fingerprint load(@NonNull String id) throws IOException, JedisException {
         String loadedData;
+        JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
 
-        try (Jedis jedis = getJedis()) {
+        try (Jedis jedis = jedisPoolManager.getJedis(this)) {
             loadedData = jedis.get(instanceId + id);
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Jedis failed in loading fingerprint: " + id, e);
@@ -138,7 +123,8 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Deletes the fingerprint with the given id.
      */
     public void delete(@NonNull String id) throws JedisException {
-        try (Jedis jedis = getJedis()) {
+        JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
+        try (Jedis jedis = jedisPoolManager.getJedis(this)) {
             Transaction transaction = jedis.multi();
             transaction.del(instanceId + id);
             transaction.srem(instanceId, id);
@@ -153,12 +139,106 @@ public class RedisFingerprintStorage extends FingerprintStorage {
      * Returns true if there's some data in the fingerprint database.
      */
     public boolean isReady() {
-        try (Jedis jedis = getJedis()) {
+        JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
+        try (Jedis jedis = jedisPoolManager.getJedis(this)) {
             return jedis.smembers(instanceId).size() != 0;
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
             throw e;
         }
+    }
+
+    private String host = RedisFingerprintStorageDescriptor.DEFAULT_HOST;
+    private int port = RedisFingerprintStorageDescriptor.DEFAULT_PORT;
+    private int database = RedisFingerprintStorageDescriptor.DEFAULT_DATABASE;
+    private boolean ssl = RedisFingerprintStorageDescriptor.DEFAULT_SSL;
+    private int connectionTimeout = RedisFingerprintStorageDescriptor.DEFAULT_CONNECTION_TIMEOUT;
+    private int socketTimeout = RedisFingerprintStorageDescriptor.DEFAULT_SOCKET_TIMEOUT;
+    private String credentialsId = RedisFingerprintStorageDescriptor.DEFAULT_CREDENTIALS_ID;
+
+    public String getHost() {
+        return host;
+    }
+
+    @DataBoundSetter
+    public void setHost(String host) {
+        this.host = host;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    @DataBoundSetter
+    public void setPort(int port) {
+        this.port = port;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
+    }
+
+    public int getDatabase() {
+        return database;
+    }
+
+    @DataBoundSetter
+    public void setDatabase(int database) {
+        this.database = database;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
+    }
+
+    public boolean getSsl() {
+        return this.ssl;
+    }
+
+    @DataBoundSetter
+    public void setSsl(boolean ssl) {
+        this.ssl = ssl;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
+    }
+
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    @DataBoundSetter
+    public void setConnectionTimeout(int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
+    }
+
+    public int getSocketTimeout() {
+        return socketTimeout;
+    }
+
+    @DataBoundSetter
+    public void setSocketTimeout(int socketTimeout) {
+        this.socketTimeout = socketTimeout;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
+    }
+
+    public String getCredentialsId() {
+        return credentialsId;
+    }
+
+    @DataBoundSetter
+    public void setCredentialsId(String credentialsId) {
+        this.credentialsId = credentialsId;
+        JedisPoolManager.INSTANCE.createJedisPoolFromConfig(this);
+    }
+
+    public @NonNull String getUsername() {
+        StandardUsernamePasswordCredentials credential = CredentialHelper.getCredential(credentialsId);
+        return CredentialHelper.getUsernameFromCredential(credential);
+    }
+
+    public @NonNull String getPassword() {
+        StandardUsernamePasswordCredentials credential = CredentialHelper.getCredential(credentialsId);
+        return CredentialHelper.getPasswordFromCredential(credential);
+    }
+
+    @Extension
+    public static class DescriptorImpl extends RedisFingerprintStorageDescriptor {
+
     }
 
 }

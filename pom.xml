@@ -41,8 +41,8 @@ THE SOFTWARE.
     </modules>
 
     <properties>
-        <!-- TODO https://github.com/jenkinsci/jenkins/pull/4731 -->
-        <jenkins.version>2.242</jenkins.version>
+        <!-- TODO https://github.com/jenkinsci/jenkins/pull/4834 -->
+        <jenkins.version>2.246-rc30249.e91381eb5ae6</jenkins.version>
         <java.level>8</java.level>
         <useBeta>true</useBeta>
     </properties>
