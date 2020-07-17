@@ -71,7 +71,7 @@ public class RedisConnectionTest {
     private void setRedisConfigurationViaProxy(ToxiproxyContainer.ContainerProxy proxy) {
         final String host = proxy.getContainerIpAddress();
         final int port = proxy.getProxyPort();
-        Utils.setRedisConfiguration(host, port);
+        RedisConfiguration.setConfiguration(host, port);
     }
 
     @Test
@@ -158,7 +158,7 @@ public class RedisConnectionTest {
         exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
 
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
-        proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
+        proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 3010);
         setRedisConfigurationViaProxy(proxy);
 
         String id = Util.getDigestOf("testSlowRedisConnectionForSave");
@@ -171,7 +171,7 @@ public class RedisConnectionTest {
         exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
 
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
-        proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
+        proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 3010);
         setRedisConfigurationViaProxy(proxy);
 
         String id = Util.getDigestOf("testSlowRedisConnectionForLoad");
@@ -184,7 +184,7 @@ public class RedisConnectionTest {
         exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
 
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
-        proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
+        proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 3010);
         setRedisConfigurationViaProxy(proxy);
 
         String id = Util.getDigestOf("testSlowRedisConnectionForDelete");
@@ -197,7 +197,7 @@ public class RedisConnectionTest {
         exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
 
         final ToxiproxyContainer.ContainerProxy proxy = toxiproxy.getProxy(redis, 6379);
-        proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 2010);
+        proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 3010);
         setRedisConfigurationViaProxy(proxy);
 
         RedisFingerprintStorage.get().isReady();
