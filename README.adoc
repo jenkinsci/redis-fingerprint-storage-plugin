@@ -5,6 +5,8 @@ link:https://lgtm.com/projects/g/jenkinsci/redis-fingerprint-storage-plugin/cont
 link:https://github.com/jenkinsci/redis-fingerprint-storage-plugin/graphs/contributors[image:https://img.shields.io/github/contributors/jenkinsci/redis-fingerprint-storage-plugin.svg?color=blue[Contributors]]
 link:https://gitter.im/jenkinsci/external-fingerprint-storage[image:https://badges.gitter.im/jenkinsci/external-fingerprint-storage.svg[Gitter]]
 
+image::images/logo.png[]
+
 == Introduction
 
 The plugin allows users to configure Redis for storing fingerprints.
