@@ -48,6 +48,7 @@ public class ConfigurationAsCodeCompatibilityTest {
         assertThat(redisFingerprintStorage.getDatabase(), is(3));
         assertThat(redisFingerprintStorage.getConnectionTimeout(), is(3));
         assertThat(redisFingerprintStorage.getSocketTimeout(), is(3));
+        assertThat(redisFingerprintStorage.getCredentialsId(), is("randomCredentialsId"));
     }
 
 }

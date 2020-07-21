@@ -30,4 +30,5 @@ unclassified:
         database: 3
         connectionTimeout: 3
         socketTimeout: 3
+        credentialsId: "randomCredentialsId"
 
