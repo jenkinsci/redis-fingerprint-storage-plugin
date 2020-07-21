@@ -10,9 +10,88 @@ for current status.
 
 == Introduction
 
-The plugin allows users to use Redis for storing fingerprints.
+The plugin allows users to configure Redis for storing fingerprints.
 
-== Running the plugin locally
+== Installation
+
+The plugin can be installed using the link:https://www.jenkins.io/doc/developer/publishing/releasing-experimental-updates/[experimental update center].
+
+Follow along the following steps after running Jenkins to download and install the plugin:
+
+. Select `Manage Jenkins`
+
+. Select `Manage Plugins`
+
+. Go to `Advanced` tab
+
+. Configure the Update Site URL as: https://updates.jenkins.io/experimental/update-center.json
+
+. Click on `Submit`, and then press the `Check Now` button.
+
+. Go to `Available` tab.
+
+. Search for `Redis Fingerprint Storage Plugin` and check the box beside it.
+
+. Click on `Install without restart`
+
+The plugin should now be installed on your system.
+
+== Configuring the plugin
+
+=== Using the Web UI
+
+Once the plugin has been installed, you can configure the Redis server details by following the steps below:
+
+. Select `Manage Jenkins`
+
+. Select `Configure System`
+
+. Scroll to the section `Redis Fingerprint Storage Configuration` and fill in the required details:
+
++
+
+image::images/config_page.png[]
+
++
+
+* `Host` - Enter hostname where Redis is running
+
+* `Port` - Specify the port on which Redis is running
+
+* `SSL` - Click if SSL is enabled
+
+* `Database` - Redis supports integer indexed databases, which can be specified here.
+
+* `Connection Timeout` - Set the connection timeout duration in milliseconds.
+
+* `Socket Timeout` - Set the socket timeout duration in milliseconds.
+
+* `Credentials` - Configure authentication using username and password to the Redis instance.
+
+. Use the `Test Redis Connection` to verify that the details are correct and Jenkins is able to connect to the Redis instance.
+
+. Press the `Save` button.
+
+. Now, all the fingerprints produced by this Jenkins instance should be saved in the configured Redis server!
+
+=== Using Jenkins Configuration as Code Plugin (JCasC)
+
+The plugin can also be configured using the link:https://github.com/jenkinsci/configuration-as-code-plugin[configuration as code plugin]
+
+A sample YAML file is provided below for configuring this plugin using JCasC:
+
+```
+unclassified:
+  redis:
+    host: "localhost"
+    port: 6379
+    ssl: false
+    database: 0
+    connectionTimeout: 3000
+    socketTimeout: 3000
+```
+
+== Setting up the Plugin locally for Development
 
 Clone the repository
 
@@ -37,18 +116,15 @@ cd plugin
 mvn hpi:run
 ```
 
-== Configuring the plugin
+== Reaching Out
 
-Go to link:http://localhost:8080/jenkins/configure[Jenkins Configuration Page] (`/jenkins/configure`)
+Feel free to reach out to us for any questions, feedback, etc. on the project's link:https://gitter.im/jenkinsci/external-fingerprint-storage[Gitter Channel] or the mailto:jenkinsci-dev@googlegroups.com[Jenkins Developer Mailing list]
 
-image::images/config_page.png[]
-
-Supply the information for the server running Redis.
-
-You can use the 'Test Redis Connection' button to verify that the details are correct.
-
-All fingerprints will now be saved in the Redis instance, and not locally :)
+We use Jenkins link:https://issues.jenkins-ci.org/[Jira] to track issues.
+Feel free to file issues under `redis-fingerprint-storage-plugin` component.
 
 == References
 
-link:https://github.com/jenkinsci/jep/tree/master/jep/226[JEP-226]
+* link:https://github.com/jenkinsci/jep/tree/master/jep/226[JEP-226]
+
+* link:https://www.youtube.com/watch?v=yzd-y5ByXg8&feature=youtu.be[Demo]
