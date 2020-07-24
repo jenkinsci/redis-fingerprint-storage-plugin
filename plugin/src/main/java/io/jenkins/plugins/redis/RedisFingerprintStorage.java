@@ -29,6 +29,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 import hudson.Extension;
 import hudson.ExtensionList;
+import hudson.model.TaskListener;
 import jenkins.fingerprints.FingerprintStorage;
 import hudson.model.Fingerprint;
 import hudson.Util;
@@ -38,6 +39,9 @@ import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -45,7 +49,11 @@ import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
+
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
 
@@ -60,6 +68,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
     private final String instanceId;
     private static final Logger LOGGER = Logger.getLogger(Fingerprint.class.getName());
+    private static final int MAX_FINGERPRINT_DELETES = 100;
 
     public static RedisFingerprintStorage get() {
         return ExtensionList.lookupSingleton(RedisFingerprintStorage.class);
@@ -104,10 +113,14 @@ public class RedisFingerprintStorage extends FingerprintStorage {
 
         if (loadedData == null) return null;
 
+        return blobToFingerprint(loadedData);
+    }
+
+    private Fingerprint blobToFingerprint(String blob) throws IOException {
         Object loadedObject = null;
         Fingerprint loadedFingerprint;
 
-        try (InputStream in = new ByteArrayInputStream(loadedData.getBytes(StandardCharsets.UTF_8))) {
+        try (InputStream in = new ByteArrayInputStream(blob.getBytes(StandardCharsets.UTF_8))) {
             loadedObject = Fingerprint.getXStream().fromXML(in);
             loadedFingerprint = (Fingerprint) loadedObject;
         } catch (RuntimeException e) {
@@ -142,6 +155,66 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
         try (Jedis jedis = jedisPoolManager.getJedis(this)) {
             return jedis.smembers(instanceId).size() != 0;
+        } catch (JedisException e) {
+            LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
+            throw e;
+        }
+    }
+
+    public void iterateAndCleanupFingerprints(TaskListener listener) {
+        String currentPointer = ScanParams.SCAN_POINTER_START;
+
+        try {
+            do {
+                ScanResult<String> scanResult = RedisFingerprintStorage.get().getFingerprintIdsForCleanup(currentPointer);
+                List<String> fingerprintIds = scanResult.getResult();
+
+                try {
+                    List<Fingerprint> fingerprints = bulkLoad(fingerprintIds);
+                    for (Fingerprint fingerprint : fingerprints) {
+                        if (fingerprint != null) {
+                            cleanFingerprint(fingerprint, listener);
+                        }
+                    }
+                } catch (IOException e) {
+                    LOGGER.log(Level.WARNING, "Fingerprints found were malformed.", e);
+                }
+
+                currentPointer = scanResult.getCursor();
+            } while (!currentPointer.equals(ScanParams.SCAN_POINTER_START));
+        } catch (JedisException e) {
+            LOGGER.log(Level.WARNING, "Jedis failed to clean fingerprints. ", e);
+        }
+
+    }
+
+    ScanResult<String> getFingerprintIdsForCleanup(String cur) throws JedisException {
+        JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
+        ScanParams scanParams = new ScanParams().count(MAX_FINGERPRINT_DELETES);
+        try (Jedis jedis = jedisPoolManager.getJedis(this)) {
+            return jedis.sscan(instanceId, cur, scanParams);
+        } catch (JedisException e) {
+            LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
+            throw e;
+        }
+    }
+
+    List<Fingerprint> bulkLoad(List<String> ids) throws IOException {
+        JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
+        List<String> instanceConcatenatedIds = new ArrayList<>();
+
+        for (String id : ids) {
+            instanceConcatenatedIds.add(instanceId + id);
+        }
+
+        String[] fingerprintIds = instanceConcatenatedIds.toArray(new String[instanceConcatenatedIds.size()]);
+        try (Jedis jedis = jedisPoolManager.getJedis(this)) {
+            List<String> fingerprintBlobs = jedis.mget(fingerprintIds);
+            List<Fingerprint> fingerprints = new ArrayList<>();
+            for (String fingerprintBlob : fingerprintBlobs) {
+                fingerprints.add(blobToFingerprint(fingerprintBlob));
+            }
+            return Collections.unmodifiableList(fingerprints);
         } catch (JedisException e) {
             LOGGER.log(Level.WARNING, "Failed to connect to Jedis", e);
             throw e;

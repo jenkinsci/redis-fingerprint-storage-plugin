@@ -23,11 +23,18 @@
  */
 package io.jenkins.plugins.redis;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Util;
 import hudson.model.Fingerprint;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import hudson.model.TaskListener;
 import jenkins.fingerprints.FingerprintStorage;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.junit.After;
@@ -166,6 +173,54 @@ public class RedisFingerprintStorageTest {
         String id = Util.getDigestOf("testIsReady");
         new Fingerprint(null, "foo.jar", Util.fromHexString(id));
         assertThat(fingerprintStorage.isReady(), is(true));
+    }
+
+    @Test
+    public void shouldDeleteFingerprintAfterCleanup() throws IOException {
+        TestTaskListener testTaskListener = new TestTaskListener();
+        setConfiguration();
+        String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
+        String id = Util.getDigestOf("shouldDeleteFingerprintAfterCleanup");
+        new Fingerprint(null, "foo.jar", Util.fromHexString(id));
+
+        RedisFingerprintStorage.get().iterateAndCleanupFingerprints(testTaskListener);
+
+        Fingerprint fingerprintLoaded = Fingerprint.load(id);
+        assertThat(fingerprintLoaded, is(nullValue()));
+        assertThat(jedis.smembers(instanceId), not(hasItem(id)));
+    }
+
+    @Test
+    public void testBulkLoad() throws IOException {
+        setConfiguration();
+        String instanceId = Util.getDigestOf(new ByteArrayInputStream(InstanceIdentity.get().getPublic().getEncoded()));
+        List<String> fingerprintIds = new ArrayList<>();
+
+        for (int i = 0; i < 3; i++) {
+            String fingerprintId = Util.getDigestOf(Integer.toString(i));
+            new Fingerprint(null, "foo.jar", Util.fromHexString(fingerprintId));
+            fingerprintIds.add(fingerprintId);
+        }
+
+        List<Fingerprint> fingerprints = RedisFingerprintStorage.get().bulkLoad(fingerprintIds);
+
+        for (int i = 0; i < 3; i++) {
+            assertThat(fingerprints.get(i), is(not(nullValue())));
+            assertThat(jedis.smembers(instanceId), hasItem(fingerprintIds.get(i)));
+        }
+    }
+
+    private static class TestTaskListener implements TaskListener {
+
+        private ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        private PrintStream logStream = new PrintStream(outputStream);
+
+        @NonNull
+        @Override
+        public PrintStream getLogger() {
+            return logStream;
+        }
+
     }
 
 }
