@@ -24,6 +24,7 @@
 package io.jenkins.plugins.redis;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.model.User;
 import hudson.security.ACL;
 import hudson.security.ACLContext;
@@ -69,8 +70,11 @@ public class ConfigurationWebTest {
         RedisConfiguration.setConfiguration(initialHost, initialPort, initialConnectionTimeout, initialSocketTimeout,
                 "", initialDatabase, initialSsl);
 
-        JenkinsRule.WebClient web = j.createWebClient();
-        HtmlForm form = web.goTo("configure").getFormByName("config");
+        JenkinsRule.WebClient webClient = j.createWebClient();
+        webClient.getOptions().setCssEnabled(false);
+
+        HtmlPage configPage = webClient.goTo("configure");
+        HtmlForm form = configPage.getFormByName("config");
 
         assertThat(form.getInputsByName("_.host").size(), is(1));
         form.getInputsByName("_.host").get(0).setValueAttribute(finalHost);
@@ -87,26 +91,8 @@ public class ConfigurationWebTest {
 
         j.submit(form);
 
-        form = web.goTo("configure").getFormByName("config");
-
-        assertThat(form.getInputsByName("_.host").size(), is(1));
-        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is(finalHost));
-        assertThat(form.getInputsByName("_.port").size(), is(1));
-        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is(finalPort.toString()));
-        assertThat(form.getInputsByName("_.ssl").size(), is(1));
-        assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(finalSsl.toString()));
-        assertThat(form.getInputsByName("_.database").size(), is(1));
-        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is(finalDatabase.toString()));
-        assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(),
-                is(finalConnectionTimeout.toString()));
-        assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(),
-                is(finalSocketTimeout.toString()));
-
-        web.goTo("configure").refresh();
-
-        form = web.goTo("configure").getFormByName("config");
+        configPage = webClient.goTo("configure");
+        form = configPage.getFormByName("config");
 
         assertThat(form.getInputsByName("_.host").size(), is(1));
         assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is(finalHost));
