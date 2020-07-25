@@ -111,7 +111,9 @@ public class RedisFingerprintStorage extends FingerprintStorage {
             throw e;
         }
 
-        if (loadedData == null) return null;
+        if (loadedData == null) {
+            return null;
+        }
 
         return blobToFingerprint(loadedData);
     }
