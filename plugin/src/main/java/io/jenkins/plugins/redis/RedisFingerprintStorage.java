@@ -199,9 +199,14 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         }
     }
 
-    List<Fingerprint> bulkLoad(List<String> ids) throws IOException {
+    @NonNull List<Fingerprint> bulkLoad(@NonNull List<String> ids) throws IOException {
         JedisPoolManager jedisPoolManager = JedisPoolManager.INSTANCE;
         List<String> instanceConcatenatedIds = new ArrayList<>();
+
+        if (ids.size() == 0) {
+            List<Fingerprint> fingerprints = new ArrayList<>();
+            return Collections.unmodifiableList(fingerprints);
+        }
 
         for (String id : ids) {
             instanceConcatenatedIds.add(instanceId + id);
