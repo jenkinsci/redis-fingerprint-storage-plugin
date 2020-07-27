@@ -206,8 +206,7 @@ public class RedisFingerprintStorage extends FingerprintStorage {
         List<String> instanceConcatenatedIds = new ArrayList<>();
 
         if (ids.size() == 0) {
-            List<Fingerprint> fingerprints = new ArrayList<>();
-            return Collections.unmodifiableList(fingerprints);
+            return Collections.emptyList();
         }
 
         for (String id : ids) {
