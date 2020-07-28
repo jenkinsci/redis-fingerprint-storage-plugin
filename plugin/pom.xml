@@ -38,7 +38,7 @@ THE SOFTWARE.
 
     <name>Redis Fingerprint Storage Plugin</name>
     <description>Pluggable External Fingerprint Storage Client for Redis</description>
-    <url>https://github.com/stellargo/redis-fingerprint-storage-plugin</url>
+    <url>https://github.com/jenkinsci/redis-fingerprint-storage-plugin</url>
 
     <properties>
         <configuration-as-code.version>1.42</configuration-as-code.version>
@@ -108,15 +108,6 @@ THE SOFTWARE.
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <!-- Assuming you want to host on @jenkinsci:
-    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    <scm>
-        <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    </scm>
-    -->
 
     <developers>
         <developer>
