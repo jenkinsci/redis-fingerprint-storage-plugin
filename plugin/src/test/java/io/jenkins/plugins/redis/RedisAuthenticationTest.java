@@ -39,6 +39,8 @@ import org.testcontainers.containers.GenericContainer;
 import redis.clients.jedis.exceptions.JedisAccessControlException;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
+import java.io.IOException;
+
 import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -102,7 +104,7 @@ public class RedisAuthenticationTest {
     }
 
     @Test
-    public void testIsReadyWithoutPasswordWhenPasswordIsConfigured() {
+    public void testIsReadyWithoutPasswordWhenPasswordIsConfigured() throws IOException {
         exceptionRule.expect(JedisConnectionException.class);
         exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
         exceptionRule.expectCause(isA(JedisAccessControlException.class));
