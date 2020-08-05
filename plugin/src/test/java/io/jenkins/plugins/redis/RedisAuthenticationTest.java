@@ -104,7 +104,7 @@ public class RedisAuthenticationTest {
     }
 
     @Test
-    public void testIsReadyWithoutPasswordWhenPasswordIsConfigured() throws IOException {
+    public void testIsReadyWithoutPasswordWhenPasswordIsConfigured() throws Exception {
         exceptionRule.expect(JedisConnectionException.class);
         exceptionRule.expectMessage(NO_RESOURCE_FROM_POOL);
         exceptionRule.expectCause(isA(JedisAccessControlException.class));
