@@ -41,7 +41,7 @@ THE SOFTWARE.
     <url>https://github.com/jenkinsci/redis-fingerprint-storage-plugin</url>
 
     <properties>
-        <configuration-as-code.version>1.42</configuration-as-code.version>
+        <configuration-as-code.version>1.43</configuration-as-code.version>
     </properties>
 
     <dependencies>
@@ -92,7 +92,7 @@ THE SOFTWARE.
         <dependency>
             <groupId>org.jenkins-ci.main</groupId>
             <artifactId>jenkins-test-harness</artifactId>
-            <version>2.65</version>
+            <version>2.66</version>
             <scope>test</scope>
         </dependency>
         <dependency>
