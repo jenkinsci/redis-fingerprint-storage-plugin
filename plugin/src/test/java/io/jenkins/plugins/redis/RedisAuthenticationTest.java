@@ -39,8 +39,6 @@ import org.testcontainers.containers.GenericContainer;
 import redis.clients.jedis.exceptions.JedisAccessControlException;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
-import java.io.IOException;
-
 import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
