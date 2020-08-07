@@ -1,6 +1,8 @@
 = Redis Fingerprint Storage Plugin
 
 link:https://ci.jenkins.io/job/Plugins/job/redis-fingerprint-storage-plugin/job/master/[image:https://ci.jenkins.io/job/Plugins/job/redis-fingerprint-storage-plugin/job/master/badge/icon[Build]]
+link:https://github.com/jenkinsci/redis-fingerprint-storage-plugin/releases/latest[
+image:https://img.shields.io/github/release/jenkinsci/redis-fingerprint-storage-plugin.svg?label=release[GitHub release]]
 link:https://lgtm.com/projects/g/jenkinsci/redis-fingerprint-storage-plugin/context:java[image:https://img.shields.io/lgtm/grade/java/g/jenkinsci/redis-fingerprint-storage-plugin.svg?logo=lgtm&logoWidth=18[Language grade: Java]]
 link:https://github.com/jenkinsci/redis-fingerprint-storage-plugin/graphs/contributors[image:https://img.shields.io/github/contributors/jenkinsci/redis-fingerprint-storage-plugin.svg?color=blue[Contributors]]
 link:https://gitter.im/jenkinsci/external-fingerprint-storage[image:https://badges.gitter.im/jenkinsci/external-fingerprint-storage.svg[Gitter]]
