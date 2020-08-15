@@ -28,12 +28,12 @@ THE SOFTWARE.
     <parent>
         <groupId>io.jenkins.plugins</groupId>
         <artifactId>redis-fingerprint-storage-parent</artifactId>
-        <version>1.0-rc-3-SNAPSHOT</version>
+        <version>1.0-rc-3</version>
         <relativePath>..</relativePath>
     </parent>
 
     <artifactId>redis-fingerprint-storage</artifactId>
-    <version>1.0-rc-3-SNAPSHOT</version>
+    <version>1.0-rc-3</version>
     <packaging>hpi</packaging>
 
     <name>Redis Fingerprint Storage Plugin</name>
