@@ -89,6 +89,25 @@ unclassified:
         credentialsId: "foo"
 ```
 
+== Supported Features
+
+=== Fingerprint Cleanup
+
+Support for fingerprint cleanup by external storage plugins was introduced by Jenkins core in
+link:https://www.jenkins.io/changelog/#v2.248[Jenkins-2.248].
+This plugin fully supports fingerprint cleanup. To enable fingerprint cleanup, just uncheck the box next to
+Disable Fingerprint Cleanup, which can be found in the Fingerprints section.
+
+When fingerprint cleanup is enabled, the plugin periodically clears out the old fingerprints whose builds have
+been discarded, thus saving memory in the database.
+
+=== Fingerprint Migration
+
+link:https://www.jenkins.io/changelog/#v2.251[Jenkins-2.251] introduced fingerprint migration.
+This allows local file system fingerprints to be migrated by the external fingerprint storage plugin.
+This means that whenever the fingerprint is used, it gets migrated to the newly configured external storage.
+Redis fingerprint storage plugin completely supports migration.
+
 == Setting up the Plugin locally for Development
 
 Clone the repository
