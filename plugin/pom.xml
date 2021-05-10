@@ -41,7 +41,7 @@ THE SOFTWARE.
     <url>https://github.com/jenkinsci/redis-fingerprint-storage-plugin</url>
 
     <properties>
-        <configuration-as-code.version>1.43</configuration-as-code.version>
+        <configuration-as-code.version>1.51</configuration-as-code.version>
     </properties>
 
     <dependencies>
