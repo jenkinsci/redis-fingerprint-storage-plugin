@@ -53,7 +53,7 @@ THE SOFTWARE.
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
-            <version>1074.v60e6c29b_b_44b_</version>
+            <version>1139.veb_9579fca_33b_</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
