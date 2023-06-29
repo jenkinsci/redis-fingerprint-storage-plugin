@@ -23,8 +23,8 @@
  */
 package io.jenkins.plugins.redis;
 
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlPage;
 import hudson.model.User;
 import hudson.security.ACL;
 import hudson.security.ACLContext;
@@ -77,17 +77,17 @@ public class ConfigurationWebTest {
         HtmlForm form = configPage.getFormByName("config");
 
         assertThat(form.getInputsByName("_.host").size(), is(1));
-        form.getInputsByName("_.host").get(0).setValueAttribute(finalHost);
+        form.getInputsByName("_.host").get(0).setValue(finalHost);
         assertThat(form.getInputsByName("_.port").size(), is(1));
-        form.getInputsByName("_.port").get(0).setValueAttribute(finalPort.toString());
+        form.getInputsByName("_.port").get(0).setValue(finalPort.toString());
         assertThat(form.getInputsByName("_.ssl").size(), is(1));
         form.getInputsByName("_.ssl").get(0).setChecked(finalSsl);
         assertThat(form.getInputsByName("_.database").size(), is(1));
-        form.getInputsByName("_.database").get(0).setValueAttribute(finalDatabase.toString());
+        form.getInputsByName("_.database").get(0).setValue(finalDatabase.toString());
         assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
-        form.getInputsByName("_.connectionTimeout").get(0).setValueAttribute(finalConnectionTimeout.toString());
+        form.getInputsByName("_.connectionTimeout").get(0).setValue(finalConnectionTimeout.toString());
         assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
-        form.getInputsByName("_.socketTimeout").get(0).setValueAttribute(finalSocketTimeout.toString());
+        form.getInputsByName("_.socketTimeout").get(0).setValue(finalSocketTimeout.toString());
 
         j.submit(form);
 
@@ -95,18 +95,18 @@ public class ConfigurationWebTest {
         form = configPage.getFormByName("config");
 
         assertThat(form.getInputsByName("_.host").size(), is(1));
-        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is(finalHost));
+        assertThat(form.getInputsByName("_.host").get(0).getValue(), is(finalHost));
         assertThat(form.getInputsByName("_.port").size(), is(1));
-        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is(finalPort.toString()));
+        assertThat(form.getInputsByName("_.port").get(0).getValue(), is(finalPort.toString()));
         assertThat(form.getInputsByName("_.ssl").size(), is(1));
         assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(finalSsl.toString()));
         assertThat(form.getInputsByName("_.database").size(), is(1));
-        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is(finalDatabase.toString()));
+        assertThat(form.getInputsByName("_.database").get(0).getValue(), is(finalDatabase.toString()));
         assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(),
+        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValue(),
                 is(finalConnectionTimeout.toString()));
         assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(),
+        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValue(),
                 is(finalSocketTimeout.toString()));
     }
 
@@ -136,18 +136,18 @@ public class ConfigurationWebTest {
         form = web.goTo("configure").getFormByName("config");
 
         assertThat(form.getInputsByName("_.host").size(), is(1));
-        assertThat(form.getInputsByName("_.host").get(0).getValueAttribute(), is(host));
+        assertThat(form.getInputsByName("_.host").get(0).getValue(), is(host));
         assertThat(form.getInputsByName("_.port").size(), is(1));
-        assertThat(form.getInputsByName("_.port").get(0).getValueAttribute(), is(port.toString()));
+        assertThat(form.getInputsByName("_.port").get(0).getValue(), is(port.toString()));
         assertThat(form.getInputsByName("_.ssl").size(), is(1));
         assertThat(form.getInputsByName("_.ssl").get(0).getCheckedAttribute(), is(""));
         assertThat(form.getInputsByName("_.database").size(), is(1));
-        assertThat(form.getInputsByName("_.database").get(0).getValueAttribute(), is(database.toString()));
+        assertThat(form.getInputsByName("_.database").get(0).getValue(), is(database.toString()));
         assertThat(form.getInputsByName("_.connectionTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValueAttribute(), is(
+        assertThat(form.getInputsByName("_.connectionTimeout").get(0).getValue(), is(
                 connectionTimeout.toString()));
         assertThat(form.getInputsByName("_.socketTimeout").size(), is(1));
-        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValueAttribute(), is(socketTimeout.toString()));
+        assertThat(form.getInputsByName("_.socketTimeout").get(0).getValue(), is(socketTimeout.toString()));
         assertThat(form.getSelectByName("_.credentialsId").getSelectedIndex(), is(0));
     }
 
